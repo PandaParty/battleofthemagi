@@ -33,7 +33,7 @@ public class PrisonWall : MonoBehaviour {
 				GameObject.Destroy(wall2);
 				GameObject.Destroy(wall3);
 				GameObject.Destroy(wall4);
-				collider2D.enabled = false;
+				GetComponent<Collider2D>().enabled = false;
 			}
 		}
 	}
@@ -41,7 +41,7 @@ public class PrisonWall : MonoBehaviour {
 	{
 		if(reflect)
 		{
-			if(other.networkView.isMine)
+			if(other.GetComponent<NetworkView>().isMine)
 			{
 				if(other.CompareTag ("Spell"))
 				{

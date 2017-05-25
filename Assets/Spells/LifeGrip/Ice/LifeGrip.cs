@@ -35,19 +35,19 @@ public class LifeGrip : MonoBehaviour {
 		}
 		spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * 2 * Time.deltaTime * 60;
-		if(owner.networkView.isMine)
+		if(owner.GetComponent<NetworkView>().isMine)
 		{
 			Invoke ("TimeOut", 1.5f);
 		}
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 
 			if(upgrading.lifeGripShield.currentLevel > 0)
 			{
-				networkView.RPC ("ActivateAbsorb", RPCMode.All);
+				GetComponent<NetworkView>().RPC ("ActivateAbsorb", RPCMode.All);
 			}
 		}
 	}
@@ -60,7 +60,7 @@ public class LifeGrip : MonoBehaviour {
 
 	void TimeOut()
 	{
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
 			owner.SendMessage("ResetHook");
@@ -80,7 +80,7 @@ public class LifeGrip : MonoBehaviour {
 		{
 			Vector3 dir = Vector3.Normalize(owner.transform.position - hookedObject.transform.position);
 			
-			if(hookedObject.networkView.isMine)
+			if(hookedObject.GetComponent<NetworkView>().isMine)
 			{
 				hookedObject.transform.position += dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60;
 				if(!hookedObject.GetComponent<DamageSystem>().invulnerable)
@@ -90,7 +90,7 @@ public class LifeGrip : MonoBehaviour {
 			}
 			if(Vector3.Distance (owner.transform.position, hookedObject.transform.position) < 1.8f)
 			{
-				if(hookedObject.networkView.isMine)
+				if(hookedObject.GetComponent<NetworkView>().isMine)
 				{
 					Debug.Log ("I am complete!");
 					if(absorb)
@@ -98,7 +98,7 @@ public class LifeGrip : MonoBehaviour {
 						hookedObject.GetComponent<DamageSystem>().Absorb(30, 6);
 					}
 					hookedObject.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, spell.owner);
-					hookedObject.networkView.RPC ("LowerCd", RPCMode.All, 4f);
+					hookedObject.GetComponent<NetworkView>().RPC ("LowerCd", RPCMode.All, 4f);
 					((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
 
 					Network.Destroy (gameObject);
@@ -108,7 +108,7 @@ public class LifeGrip : MonoBehaviour {
 			transform.position = hookedObject.transform.position;
 		}
 		
-		if(hasHooked && hookedObject == null && owner.networkView.isMine)
+		if(hasHooked && hookedObject == null && owner.GetComponent<NetworkView>().isMine)
 		{
 			TimeOut ();
 		}
@@ -117,7 +117,7 @@ public class LifeGrip : MonoBehaviour {
 	
 	void OnTriggerEnter2D(Collider2D other)
 	{
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			if(hookedObject == null)
 			{
@@ -133,7 +133,7 @@ public class LifeGrip : MonoBehaviour {
 							CancelInvoke("TimeOut");
 							AudioSource.PlayClipAtPoint(hit, transform.position);
 							hasHooked = true;
-							networkView.RPC ("SyncHooked", RPCMode.All, playerName);
+							GetComponent<NetworkView>().RPC ("SyncHooked", RPCMode.All, playerName);
 						}
 					}
 				}

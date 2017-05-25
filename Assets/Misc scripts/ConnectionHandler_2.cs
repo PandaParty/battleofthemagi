@@ -71,7 +71,7 @@ public class ConnectionHandler_2 : MonoBehaviour {
 			//newPlayer = (GameObject)Network.Instantiate(purpleMage, spawnPos, transform.rotation, 0);
 			//newPlayer = (GameObject)GameObject.Instantiate(purpleMage, spawnPos, transform.rotation);
 		}
-		networkView.RPC ("CreatePlayer", RPCMode.AllBuffered, team, Network.AllocateViewID(), name);
+		GetComponent<NetworkView>().RPC ("CreatePlayer", RPCMode.AllBuffered, team, Network.AllocateViewID(), name);
 		/*
 		GameObject camera = GameObject.FindGameObjectWithTag ("MainCamera");
 		CameraScript camScript = (CameraScript)camera.GetComponent("CameraScript");
@@ -113,14 +113,14 @@ public class ConnectionHandler_2 : MonoBehaviour {
 			//newPlayer = (GameObject)Network.Instantiate(purpleMage, spawnPos, transform.rotation, 0);
 			//newPlayer = (GameObject)GameObject.Instantiate(purpleMage, spawnPos, transform.rotation);
 		}
-		networkView.RPC ("CreatePlayer", RPCMode.AllBuffered, team, Network.AllocateViewID(), name);
+		GetComponent<NetworkView>().RPC ("CreatePlayer", RPCMode.AllBuffered, team, Network.AllocateViewID(), name);
 
 		Invoke ("Unfreeze", 5.0f);
 	}
 
 	void Unfreeze()
 	{
-		networkView.RPC ("UnfreezeAll", RPCMode.All);
+		GetComponent<NetworkView>().RPC ("UnfreezeAll", RPCMode.All);
 	}
 
 	[RPC]
@@ -166,9 +166,9 @@ public class ConnectionHandler_2 : MonoBehaviour {
 		{
 			newPlayer = (GameObject)GameObject.Instantiate(purpleMage, spawnPos, transform.rotation);
 		}
-		newPlayer.networkView.viewID = viewId;
+		newPlayer.GetComponent<NetworkView>().viewID = viewId;
 		gameHandler.SendMessage ("NewPlayer", team);
-		if(newPlayer.networkView.isMine)
+		if(newPlayer.GetComponent<NetworkView>().isMine)
 		{
 			GameObject camera = GameObject.FindGameObjectWithTag ("MainCamera");
 			CameraScript camScript = (CameraScript)camera.GetComponent("CameraScript");

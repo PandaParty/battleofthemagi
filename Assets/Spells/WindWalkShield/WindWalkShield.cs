@@ -33,22 +33,22 @@ public class WindWalkShield : MonoBehaviour {
 			}
 		}
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.windShieldDuration.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDuration", RPCMode.All, upgrading.windShieldDuration.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.All, upgrading.windShieldDuration.currentLevel);
 				
 				if(upgrading.windShieldDamage.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateDamage", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateDamage", RPCMode.All);
 				}
 			}
 
 			if(upgrading.windShieldInvis.currentLevel > 0)
 			{
-				networkView.RPC("ActivateInvis", RPCMode.All);
+				GetComponent<NetworkView>().RPC("ActivateInvis", RPCMode.All);
 			}
 		}
 
@@ -104,7 +104,7 @@ public class WindWalkShield : MonoBehaviour {
 
 	void OnTriggerEnter2D(Collider2D other)
 	{
-		if(other.networkView.isMine)
+		if(other.GetComponent<NetworkView>().isMine)
 		{
 			if(other.CompareTag ("Spell"))
 			{
@@ -117,7 +117,7 @@ public class WindWalkShield : MonoBehaviour {
 						Network.Instantiate(shieldHit, other.transform.position, Quaternion.identity, 0);
 						Network.Destroy(other.gameObject);
 
-						networkView.RPC("Invis", RPCMode.All);
+						GetComponent<NetworkView>().RPC("Invis", RPCMode.All);
 
 					}
 				}
@@ -145,14 +145,14 @@ public class WindWalkShield : MonoBehaviour {
 			renderer.color = new Color(1, 1, 1, 0.5f);
 		}
 		
-		gameObject.collider2D.enabled = false;
+		gameObject.GetComponent<Collider2D>().enabled = false;
 
 		owner.GetComponent<Movement>().SpeedBoost(1.75f, invisDuration);
 		if(damageBoost > 0)
 		{
 			owner.GetComponent<SpellCasting>().DamageBoost(damageBoost, invisDuration);
 		}
-		owner.networkView.RPC ("DmgInvis", RPCMode.All);
+		owner.GetComponent<NetworkView>().RPC ("DmgInvis", RPCMode.All);
 	}
 
 	[RPC]
@@ -160,7 +160,7 @@ public class WindWalkShield : MonoBehaviour {
 	{
 		Debug.Log ("Starting invis!");
 		AudioSource.PlayClipAtPoint(hit, transform.position);
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			LocalInvis();
 			return;
@@ -184,7 +184,7 @@ public class WindWalkShield : MonoBehaviour {
 			renderer.enabled = false;
 		}
 
-		gameObject.collider2D.enabled = false;
+		gameObject.GetComponent<Collider2D>().enabled = false;
 		
 		Debug.Log ("Invis Started!");
 		owner.SendMessage ("Invis");

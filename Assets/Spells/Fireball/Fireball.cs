@@ -25,22 +25,22 @@ public class Fireball : MonoBehaviour
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 		spell.Invoke ("KillSelf", 5);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.fireballDot.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDot", RPCMode.All, upgrading.fireballDot.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDot", RPCMode.All, upgrading.fireballDot.currentLevel);
 				
 				if(upgrading.fireballFinalBlast.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateFinalBlast", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateFinalBlast", RPCMode.All);
 				}
 			}
 
 			if(upgrading.fireballDmg.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDmg", RPCMode.All, upgrading.fireballDmg.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.fireballDmg.currentLevel);
 			}
 		}
 	}
@@ -93,7 +93,7 @@ public class Fireball : MonoBehaviour
 			DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
 			if(spell.team != damageSystem.Team())
 			{
-				if(other.networkView.isMine && !other.GetComponent<SpellCasting>().isShielding && !other.GetComponent<DamageSystem>().invulnerable)
+				if(other.GetComponent<NetworkView>().isMine && !other.GetComponent<SpellCasting>().isShielding && !other.GetComponent<DamageSystem>().invulnerable)
 				{
 					damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
 					damageSystem.AddDot(dotDamage, duration, 0.5f, spell.owner, burnEffect);
@@ -116,7 +116,7 @@ public class Fireball : MonoBehaviour
 				{
 					other.attachedRigidbody.AddForce (spell.aimDir * spell.knockFactor * 400);
 					other.SendMessage("Damage", spell.damage);
-					if(networkView.isMine)
+					if(GetComponent<NetworkView>().isMine)
 					{
 						Network.Destroy (gameObject);
 						Network.Instantiate(fireballExplo, this.transform.position, Quaternion.identity, 0);
@@ -127,7 +127,7 @@ public class Fireball : MonoBehaviour
 			{
 				other.attachedRigidbody.AddForce (spell.aimDir * spell.knockFactor * 400);
 				other.SendMessage("Damage", spell.damage);
-				if(networkView.isMine)
+				if(GetComponent<NetworkView>().isMine)
 				{
 					Network.Destroy (gameObject);
 					Network.Instantiate(fireballExplo, this.transform.position, Quaternion.identity, 0);
@@ -136,7 +136,7 @@ public class Fireball : MonoBehaviour
 		}
 		else if(other.CompareTag ("Spell"))
 		{	
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 				Spell otherSpell = (Spell)other.GetComponent("Spell");
 				if(spell.team != otherSpell.team)

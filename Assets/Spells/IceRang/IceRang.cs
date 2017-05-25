@@ -59,22 +59,22 @@ public class IceRang : MonoBehaviour
 			arcAmount = (distance / Mathf.Pow(distance, 2) * 4);
 		}
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.iceRangDmg.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDmg", RPCMode.All, upgrading.iceRangDmg.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.iceRangDmg.currentLevel);
 				
 				if(upgrading.iceRangBounce.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateBounce", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateBounce", RPCMode.All);
 				}
 			}
 
 			if(upgrading.iceRangSlow.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseSlow", RPCMode.All, upgrading.iceRangSlow.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseSlow", RPCMode.All, upgrading.iceRangSlow.currentLevel);
 			}
 		}
 	}
@@ -160,7 +160,7 @@ public class IceRang : MonoBehaviour
 			//arcAmount -= Vector3.Distance(transform.position, startPos) / 10;
 			if(Vector3.Distance(transform.position, startPos) < 0.6f)
 			{
-				if(networkView.isMine)
+				if(GetComponent<NetworkView>().isMine)
 				{
 					Network.Destroy(gameObject);
 				}
@@ -184,7 +184,7 @@ public class IceRang : MonoBehaviour
 			DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
 			if(spell.team != damageSystem.Team())
 			{
-				if(other.networkView.isMine && !other.GetComponent<SpellCasting>().isShielding)
+				if(other.GetComponent<NetworkView>().isMine && !other.GetComponent<SpellCasting>().isShielding)
 				{
 					damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
 					other.GetComponent<Movement>().SpeedBoost(slowAmount, 3);
@@ -208,7 +208,7 @@ public class IceRang : MonoBehaviour
 			}
 			other.SendMessage("Damage", spell.damage);
 
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 				Network.Destroy (gameObject);
 				Network.Instantiate(fireballExplo, this.transform.position, Quaternion.identity, 0);
@@ -216,7 +216,7 @@ public class IceRang : MonoBehaviour
 		}
 		else if(other.CompareTag ("Spell"))
 		{	
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 
 				Spell otherSpell = (Spell)other.GetComponent("Spell");

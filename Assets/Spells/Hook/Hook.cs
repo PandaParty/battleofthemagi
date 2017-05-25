@@ -34,28 +34,28 @@ public class Hook : MonoBehaviour {
 		}
 		spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * 2 * Time.deltaTime * 60;
-		if(owner.networkView.isMine)
+		if(owner.GetComponent<NetworkView>().isMine)
 		{
 			Invoke ("TimeOut", 1f);
 		}
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.hookDmg.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDmg", RPCMode.All, upgrading.hookDmg.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.hookDmg.currentLevel);
 				
 				if(upgrading.hookPull.currentLevel > 0)
 				{
-					networkView.RPC ("ActivatePull", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivatePull", RPCMode.All);
 				}
 			}
 
 			if(upgrading.hookInvu.currentLevel > 0)
 			{
-				networkView.RPC ("ActivateInvu", RPCMode.All);
+				GetComponent<NetworkView>().RPC ("ActivateInvu", RPCMode.All);
 			}
 		}
 	}
@@ -80,7 +80,7 @@ public class Hook : MonoBehaviour {
 
 	void TimeOut()
 	{
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
 			owner.SendMessage("ResetHook");
@@ -103,13 +103,13 @@ public class Hook : MonoBehaviour {
 				hookSpeed += 0.85f;
 				Vector3 dir = Vector3.Normalize(owner.transform.position - hookedObject.transform.position);
 				
-				if(hookedObject.networkView.isMine)
+				if(hookedObject.GetComponent<NetworkView>().isMine)
 				{
 					hookedObject.transform.position += dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60;
 				}
 				if(Vector3.Distance (owner.transform.position, hookedObject.transform.position) < 1.8f)
 				{
-					if(hookedObject.networkView.isMine)
+					if(hookedObject.GetComponent<NetworkView>().isMine)
 					{
 						Debug.Log ("I am complete!");
 
@@ -128,19 +128,19 @@ public class Hook : MonoBehaviour {
 				hookSpeed += 0.85f;
 				Vector3 dir = Vector3.Normalize(owner.transform.position - hookedObject.transform.position);
 				
-				if(owner.networkView.isMine)
+				if(owner.GetComponent<NetworkView>().isMine)
 				{
 					owner.transform.position -= dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60;
 				}
 
 				if(Vector3.Distance (owner.transform.position, hookedObject.transform.position) < 1.8f)
 				{
-					if(owner.networkView.isMine)
+					if(owner.GetComponent<NetworkView>().isMine)
 					{
 						Debug.Log ("I am complete!");
 						if(hookedObject.tag == "Player")
 						{
-							hookedObject.networkView.RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
+							hookedObject.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
 							//hookedObject.GetComponent<DamageSystem>().Damage (spell.damage, spell.knockFactor, owner.transform.position);
 						}
 						((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
@@ -152,7 +152,7 @@ public class Hook : MonoBehaviour {
 			transform.position = hookedObject.transform.position;
 		}
 		
-		if(hasHooked && hookedObject == null && owner.networkView.isMine)
+		if(hasHooked && hookedObject == null && owner.GetComponent<NetworkView>().isMine)
 		{
 			TimeOut ();
 		}
@@ -161,7 +161,7 @@ public class Hook : MonoBehaviour {
 	
 	void OnTriggerEnter2D(Collider2D other)
 	{
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			if(hookedObject == null)
 			{
@@ -176,10 +176,10 @@ public class Hook : MonoBehaviour {
 						hasHooked = true;
 						string playerName = ((SpellCasting)other.gameObject.GetComponent ("SpellCasting")).playerName;
 						
-						networkView.RPC ("SyncHooked", RPCMode.All, playerName);
+						GetComponent<NetworkView>().RPC ("SyncHooked", RPCMode.All, playerName);
 						if(pulling && hookedObject.tag == "Player")
 						{
-							hookedObject.networkView.RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
+							hookedObject.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
 						}
 					}
 				}

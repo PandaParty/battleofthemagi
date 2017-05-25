@@ -132,7 +132,7 @@ public class DamageSystem : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if(networkView.isMine && !isDead && !invulnerable)
+		if(GetComponent<NetworkView>().isMine && !isDead && !invulnerable)
 		{
 			if(absorb > 0)
 			{
@@ -396,7 +396,7 @@ public class DamageSystem : MonoBehaviour {
 			}
 			Vector3 knockDir = Vector3.Normalize(transform.position - position);
 			knockback += knockDir * knockFactor * amp * (8f + (maxHealth - health) / (maxHealth/25)) / 1.8f;
-			networkView.RPC ("UpdateHealth", RPCMode.OthersBuffered, health, damageTaken);
+			GetComponent<NetworkView>().RPC ("UpdateHealth", RPCMode.OthersBuffered, health, damageTaken);
 			
 			if(health <= 40 && !playedLastword)
 			{
@@ -408,7 +408,7 @@ public class DamageSystem : MonoBehaviour {
 			{
 				if(player.GetComponent<SpellCasting>().playerName == damagedBy)
 				{
-					player.networkView.RPC("IncreaseDamageDone", RPCMode.All, damage);
+					player.GetComponent<NetworkView>().RPC("IncreaseDamageDone", RPCMode.All, damage);
 					break;
 				}
 			}
@@ -433,16 +433,16 @@ public class DamageSystem : MonoBehaviour {
 				{
 					if(inLava)
 					{
-						GA.API.Design.NewEvent("Dead:Lava:In");
+						//GA.API.Design.NewEvent("Dead:Lava:In");
 					}
 					else
 					{
-						GA.API.Design.NewEvent("Dead:Lava:Out");
+						//GA.API.Design.NewEvent("Dead:Lava:Out");
 					}
-					GA.API.Design.NewEvent("DeathCount:Player:" + spellCasting.playerName);
-					GA.API.Design.NewEvent("Player:" + spellCasting.playerName + ":KD", 0);
-					GA.API.Design.NewEvent("Player:" + lastDamagedBy + ":KD", 1);
-					GA.API.Design.NewEvent("KillCount:Player:" + lastDamagedBy);
+					//GA.API.Design.NewEvent("DeathCount:Player:" + spellCasting.playerName);
+					//GA.API.Design.NewEvent("Player:" + spellCasting.playerName + ":KD", 0);
+					//GA.API.Design.NewEvent("Player:" + lastDamagedBy + ":KD", 1);
+					//GA.API.Design.NewEvent("KillCount:Player:" + lastDamagedBy);
 					isDead = true;
 					spellCasting.isDead = true;
 					knockback = Vector3.zero;
@@ -452,7 +452,7 @@ public class DamageSystem : MonoBehaviour {
 					damageTaken = 0;
 					damageHealed = 0;
 					invulnerable = true;
-					networkView.RPC ("Hide", RPCMode.AllBuffered);
+					GetComponent<NetworkView>().RPC ("Hide", RPCMode.AllBuffered);
 					AudioSource.PlayClipAtPoint(dead, transform.position);
 					if(lives > 0)
 					{
@@ -484,7 +484,7 @@ public class DamageSystem : MonoBehaviour {
 	[RPC]
 	void IncreaseGold(int amount)
 	{
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			spellCasting.gold += amount;
 		}
@@ -493,7 +493,7 @@ public class DamageSystem : MonoBehaviour {
 	[RPC]
 	void HookDamage(float damage, float knockFactor, Vector3 position, string owner)
 	{
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Debug.Log ("Time to take some damage!");
 			/*
@@ -528,7 +528,7 @@ public class DamageSystem : MonoBehaviour {
 	void SelfRespawn()
 	{
 		transform.position = Vector3.zero;
-		networkView.RPC ("PreRespawn", RPCMode.AllBuffered);
+		GetComponent<NetworkView>().RPC ("PreRespawn", RPCMode.AllBuffered);
 	}
 	
 	[RPC]
@@ -559,7 +559,7 @@ public class DamageSystem : MonoBehaviour {
 		invulnerable = false;
 		spellCasting.SendMessage ("Spawned");
 		Debug.Log ("Respawned!");
-		collider2D.enabled = true;
+		GetComponent<Collider2D>().enabled = true;
 		
 		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
 		
@@ -575,7 +575,7 @@ public class DamageSystem : MonoBehaviour {
 	[RPC]
 	public void Hide()
 	{
-		collider2D.enabled = false;
+		GetComponent<Collider2D>().enabled = false;
 		//Check dis out yo can't hide this shizzle
 		
 		Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();

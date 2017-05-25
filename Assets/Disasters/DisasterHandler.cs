@@ -28,7 +28,7 @@ public class DisasterHandler : MonoBehaviour {
 			{
 				case 1:
 					Invoke ("FireDisaster", 5);
-					networkView.RPC ("FireDisSound", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("FireDisSound", RPCMode.All);
 				break;
 			}
 		}

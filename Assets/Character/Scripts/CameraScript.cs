@@ -34,7 +34,7 @@ public class CameraScript : MonoBehaviour {
 			}
 			else if(GameHandler.state == GameHandler.State.Game)
 			{
-				Vector3 newPos = Vector3.Lerp(playerObject.transform.position, this.camera.ScreenToWorldPoint(Input.mousePosition), 0.5f);
+				Vector3 newPos = Vector3.Lerp(playerObject.transform.position, this.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition), 0.5f);
 				transform.position = new Vector3(newPos.x, newPos.y, -1);
 				//transform.position = new Vector3(playerObject.transform.position.x, playerObject.transform.position.y, -1);
 			}

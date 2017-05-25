@@ -34,16 +34,16 @@ public class PlacedShield : MonoBehaviour {
 		spell.Invoke ("KillSelf", duration);
 
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.placedShieldAmp.currentLevel > 0)
 			{
-				networkView.RPC ("ActivateAmplify", RPCMode.All, upgrading.placedShieldAmp.currentLevel);
+				GetComponent<NetworkView>().RPC ("ActivateAmplify", RPCMode.All, upgrading.placedShieldAmp.currentLevel);
 				
 				if(upgrading.placedShieldKnockImmune.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateKnockImmune", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateKnockImmune", RPCMode.All);
 				}
 			}
 			
@@ -51,7 +51,7 @@ public class PlacedShield : MonoBehaviour {
 			{
 				if(upgrading.placedShieldSpeed.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateSpeedBoost", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateSpeedBoost", RPCMode.All);
 				}
 			}
 		}
@@ -84,9 +84,9 @@ public class PlacedShield : MonoBehaviour {
 
 	void OnTriggerStay2D(Collider2D other)
 	{
-		if(other.networkView != null)
+		if(other.GetComponent<NetworkView>() != null)
 		{
-			if(other.networkView.isMine)
+			if(other.GetComponent<NetworkView>().isMine)
 			{
 				if(other.CompareTag ("Spell"))
 				{

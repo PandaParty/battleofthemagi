@@ -5,7 +5,7 @@ public class OnConnection : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	    if(!networkView.isMine){
+	    if(!GetComponent<NetworkView>().isMine){
 			Movement movement = (Movement)transform.GetComponent("Movement");
 			//movement.enabled = false;
 			SpellCasting spellCasting = (SpellCasting)transform.GetComponent("SpellCasting");

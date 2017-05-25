@@ -46,36 +46,36 @@ public class FrostPrison : MonoBehaviour {
 		Invoke ("Spawn", formTime);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.frostPrisonHealth.currentLevel > 0)
 			{
-				networkView.RPC ("UpgradeHealth", RPCMode.AllBuffered);
+				GetComponent<NetworkView>().RPC ("UpgradeHealth", RPCMode.AllBuffered);
 				Debug.Log ("Upgrading health");
 				
 				if(upgrading.frostPrisonReflect.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateReflect", RPCMode.AllBuffered);
+					GetComponent<NetworkView>().RPC ("ActivateReflect", RPCMode.AllBuffered);
 				}
 			}
 
 			if(upgrading.frostPrisonDuration.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDuration", RPCMode.AllBuffered, upgrading.frostPrisonDuration.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.AllBuffered, upgrading.frostPrisonDuration.currentLevel);
 
 				if(upgrading.frostPrisonCircleWall.currentLevel > 0)
 				{
-					networkView.RPC ("CircleWall", RPCMode.AllBuffered);
+					GetComponent<NetworkView>().RPC ("CircleWall", RPCMode.AllBuffered);
 				}
 			}
 
 			if(upgrading.frostPrisonRamp.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDmg", RPCMode.All, upgrading.frostPrisonRamp.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.frostPrisonRamp.currentLevel);
 				if(upgrading.frostPrisonStorm.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateStorm", RPCMode.AllBuffered);
+					GetComponent<NetworkView>().RPC ("ActivateStorm", RPCMode.AllBuffered);
 				}
 			}
 		}
@@ -196,7 +196,7 @@ public class FrostPrison : MonoBehaviour {
 				DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
 				if(spell.team != damageSystem.Team())
 				{
-					if(other.networkView.isMine)
+					if(other.GetComponent<NetworkView>().isMine)
 					{
 						damageSystem.Damage(spell.damage * (baseDamage + (currentTime/(duration * 4.4f))), spell.knockFactor, transform.position, spell.owner);
 						if(stormActive)

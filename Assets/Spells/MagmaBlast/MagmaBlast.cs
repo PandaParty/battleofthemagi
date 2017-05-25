@@ -13,7 +13,7 @@ public class MagmaBlast : MonoBehaviour {
 		spell.SetColor();
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			string ownerName = spell.owner;
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
@@ -23,7 +23,7 @@ public class MagmaBlast : MonoBehaviour {
 				Debug.Log ("Black holing");
 				upgrading.spellCasting.BlackHole(3);
 				Network.Instantiate(blackHole, transform.position, Quaternion.identity, 0);
-				networkView.RPC ("BlackHole", RPCMode.All);
+				GetComponent<NetworkView>().RPC ("BlackHole", RPCMode.All);
 			}
 			else
 			{
@@ -38,9 +38,9 @@ public class MagmaBlast : MonoBehaviour {
 						{
 							if(upgrading.magmaBlastAmplify.currentLevel > 0)
 							{
-								damageSystem.networkView.RPC ("LavaAmplify", RPCMode.All, 0.5f, 5);
+								damageSystem.GetComponent<NetworkView>().RPC ("LavaAmplify", RPCMode.All, 0.5f, 5);
 							}
-							damageSystem.networkView.RPC ("HookDamage", RPCMode.All, spell.damage + upgrading.magmaBlastDmg.currentLevel, spell.knockFactor, transform.position, spell.owner);
+							damageSystem.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage + upgrading.magmaBlastDmg.currentLevel, spell.knockFactor, transform.position, spell.owner);
 							Debug.Log ("Damage time");
 						}
 					}
@@ -61,7 +61,7 @@ public class MagmaBlast : MonoBehaviour {
 		GameObject[] obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
 		foreach(GameObject other in obstacles)
 		{
-			Collider2D coll = other.collider2D;
+			Collider2D coll = other.GetComponent<Collider2D>();
 			float distance = 0;
 			if(coll.GetType() == typeof(BoxCollider2D))
 			{
@@ -73,7 +73,7 @@ public class MagmaBlast : MonoBehaviour {
 			}
 			if(Vector3.Distance(other.transform.position, gameObject.transform.position) - distance / 2 < 3.1f)
 			{
-				other.collider2D.attachedRigidbody.AddForce(
+				other.GetComponent<Collider2D>().attachedRigidbody.AddForce(
 					Vector3.Normalize(other.transform.position - gameObject.transform.position) 
 					* 400 * spell.knockFactor);
 			}
@@ -85,7 +85,7 @@ public class MagmaBlast : MonoBehaviour {
 	[RPC]
 	void BlackHole()
 	{
-		particleSystem.Stop(true);
+		GetComponent<ParticleSystem>().Stop(true);
 	}
 
 	// Update is called once per frame

@@ -29,10 +29,6 @@ public class GameHandler : MonoBehaviour {
 
 	float timeCounter = 0;
 
-	public dfLabel damageText;
-	public dfLabel timeText;
-
-
 	// Use this for initialization
 	void Start () 
 	{
@@ -58,17 +54,17 @@ public class GameHandler : MonoBehaviour {
 		{
 			GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 
-			damageText.Text = "Damage";
-			//GUI.Label(new Rect(10, 300, 100, 100), "Damage done: ");
+			//damageText.Text = "Damage";
+			GUI.Label(new Rect(10, 300, 100, 100), "Damage done: ");
 			int i = 0;
 			foreach(GameObject player in players)
 			{
-				//GUI.Label(new Rect(10, 320 + i * 30, 100, 100), player.GetComponent<SpellCasting>().playerName + ": " + ((int)player.GetComponent<SpellCasting>().damageDone).ToString() +"\n");
+				GUI.Label(new Rect(10, 320 + i * 30, 100, 100), player.GetComponent<SpellCasting>().playerName + ": " + ((int)player.GetComponent<SpellCasting>().damageDone).ToString() +"\n");
 				//i++;
-				damageText.Text += "\n" + player.GetComponent<SpellCasting>().playerName + " - " + ((int)player.GetComponent<SpellCasting>().damageDone).ToString();
+				//damageText.Text += "\n" + player.GetComponent<SpellCasting>().playerName + " - " + ((int)player.GetComponent<SpellCasting>().damageDone).ToString();
 			}
-			//GUI.Label(new Rect(950, 10, 200, 100), "Upgrade time: " + ((int)timeCounter).ToString());
-			timeText.Text = "Time left for upgrading \n\n" + ((int)timeCounter).ToString();
+		GUI.Label(new Rect(950, 10, 200, 100), "Time left for upgrading: " + ((int)timeCounter).ToString());
+			//timeText.Text = "Time left for upgrading \n\n" + ((int)timeCounter).ToString();
 		}
 		if(received)
 		{
@@ -89,7 +85,7 @@ public class GameHandler : MonoBehaviour {
 		received = true;
 		if(!Network.isServer)
 		{
-			networkView.RPC("DecreasePlayers", RPCMode.Server, team);
+			GetComponent<NetworkView>().RPC("DecreasePlayers", RPCMode.Server, team);
 		}
 		else
 		{
@@ -148,25 +144,25 @@ public class GameHandler : MonoBehaviour {
 		if(team2Left + team3Left + team4Left <= 0)
 		{
 			team1Score ++;
-			networkView.RPC ("WonRound", RPCMode.AllBuffered, 1);
+			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 1);
 			roundOver = true;
 		}
 		else if(team1Left + team3Left + team4Left <= 0)
 		{
 			team2Score ++;
-			networkView.RPC ("WonRound", RPCMode.AllBuffered, 2);
+			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 2);
 			roundOver = true;
 		}
 		else if(team1Left + team2Left + team4Left <= 0)
 		{
 			team3Score ++;
-			networkView.RPC ("WonRound", RPCMode.AllBuffered, 3);
+			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 3);
 			roundOver = true;
 		}
 		else if(team1Left + team2Left + team3Left == 0)
 		{
 			team4Score ++;
-			networkView.RPC ("WonRound", RPCMode.AllBuffered, 4);
+			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 4);
 			roundOver = true;
 		}
 		if(roundOver)
@@ -182,25 +178,25 @@ public class GameHandler : MonoBehaviour {
 			if(team1Score > team2Score && team1Score > team3Score && team1Score > team4Score)
 			{
 				//team 1 won
-				networkView.RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 1 has won the match!", 1);
+				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 1 has won the match!", 1);
 				//DisplayWinner ("Team 1 has won the match!");
 			}
 			if(team2Score > team1Score && team2Score > team3Score && team2Score > team4Score)
 			{
 				//team 2 won
-				networkView.RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 2 has won the match!", 2);
+				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 2 has won the match!", 2);
 				//DisplayWinner ("Team 2 has won the match!");
 			}
 			if(team3Score > team2Score && team3Score > team1Score && team3Score > team4Score)
 			{
 				//team 3 won
-				networkView.RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 3 has won the match!", 3);
+				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 3 has won the match!", 3);
 				//DisplayWinner ("Team 3 has won the match!");
 			}
 			if(team4Score > team1Score && team4Score > team2Score && team4Score > team3Score)
 			{
 				//team 4 won
-				networkView.RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 4 has won the match!", 4);
+				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 4 has won the match!", 4);
 				//DisplayWinner ("Team 4 has won the match!");
 			}
 		}
@@ -213,8 +209,8 @@ public class GameHandler : MonoBehaviour {
 				team3Left = 0;
 				team4Left = 0;
 				Debug.Log ("Sending rpc call to upgrade");
-				networkView.RPC ("SyncScore", RPCMode.All, team1Score, team2Score);
-				networkView.RPC ("Upgrade", RPCMode.AllBuffered);
+				GetComponent<NetworkView>().RPC ("SyncScore", RPCMode.All, team1Score, team2Score);
+				GetComponent<NetworkView>().RPC ("Upgrade", RPCMode.AllBuffered);
 				Debug.Log ("RPC call sent");
 			}
 			/*
@@ -266,25 +262,25 @@ public class GameHandler : MonoBehaviour {
 	{
 		SpellCasting sc = this.gameObject.GetComponent<Upgrading>().spellCasting;
 		
-		sc.gold += 120;
+		sc.gold += 160;
 
 		if(sc.team == team)
 		{
-			GA.API.Design.NewEvent("Winrate:" + sc.off1.spellName, 1);
-			GA.API.Design.NewEvent("Winrate:" + sc.off2.spellName, 1);
-			GA.API.Design.NewEvent("Winrate:" + sc.off3.spellName, 1);
-			GA.API.Design.NewEvent("Winrate:" + sc.mob.spellName, 1);
-			GA.API.Design.NewEvent("Winrate:" + sc.def.spellName, 1);
-			GA.API.Design.NewEvent("Player:" + sc.playerName + ":Winrate", 1);
+			//GA.API.Design.NewEvent("Winrate:" + sc.off1.spellName, 1);
+			//GA.API.Design.NewEvent("Winrate:" + sc.off2.spellName, 1);
+			//GA.API.Design.NewEvent("Winrate:" + sc.off3.spellName, 1);
+			//GA.API.Design.NewEvent("Winrate:" + sc.mob.spellName, 1);
+			//GA.API.Design.NewEvent("Winrate:" + sc.def.spellName, 1);
+			//GA.API.Design.NewEvent("Player:" + sc.playerName + ":Winrate", 1);
 		}
 		else
 		{
-			GA.API.Design.NewEvent("Winrate:" + sc.off1.spellName, 0);
-			GA.API.Design.NewEvent("Winrate:" + sc.off2.spellName, 0);
-			GA.API.Design.NewEvent("Winrate:" + sc.off3.spellName, 0);
-			GA.API.Design.NewEvent("Winrate:" + sc.mob.spellName, 0);
-			GA.API.Design.NewEvent("Winrate:" + sc.def.spellName, 0);
-			GA.API.Design.NewEvent("Player:" + sc.playerName + ":Winrate", 0);
+			//GA.API.Design.NewEvent("Winrate:" + sc.off1.spellName, 0);
+			//GA.API.Design.NewEvent("Winrate:" + sc.off2.spellName, 0);
+			//GA.API.Design.NewEvent("Winrate:" + sc.off3.spellName, 0);
+			//GA.API.Design.NewEvent("Winrate:" + sc.mob.spellName, 0);
+			//GA.API.Design.NewEvent("Winrate:" + sc.def.spellName, 0);
+			//GA.API.Design.NewEvent("Player:" + sc.playerName + ":Winrate", 0);
 		}
 	}
 
@@ -299,11 +295,11 @@ public class GameHandler : MonoBehaviour {
 	{
 		state = State.Game;
 		isUpgrading = false;
-		gameObject.GetComponent<Upgrading>().spellCasting.gameObject.networkView.RPC ("StartReset", RPCMode.AllBuffered);
+		gameObject.GetComponent<Upgrading>().spellCasting.gameObject.GetComponent<NetworkView>().RPC ("StartReset", RPCMode.AllBuffered);
 
 		if(!Network.isServer)
 		{
-			networkView.RPC ("IncreasePlayers", RPCMode.Server, gameObject.GetComponent<Upgrading>().spellCasting.team);
+			GetComponent<NetworkView>().RPC ("IncreasePlayers", RPCMode.Server, gameObject.GetComponent<Upgrading>().spellCasting.team);
 		}
 		else
 		{

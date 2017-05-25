@@ -55,11 +55,11 @@ public class SpellCasting : MonoBehaviour {
 	Vector2 aimPoint;
 
 	public string playerName;
-	public GameObject nameText;
+	//public GameObject nameText;
 
 	public GameObject myPortal;
 
-	GameObject myName;
+	//GameObject myName;
 
 	float channelTime;
 	bool isChanneling;
@@ -115,14 +115,14 @@ public class SpellCasting : MonoBehaviour {
 		blackHoling = false;
 		foreach(GameObject player in holePlayers)
 		{
-			player.networkView.RPC ("HolePos", RPCMode.All, Vector3.zero);
+			player.GetComponent<NetworkView>().RPC ("HolePos", RPCMode.All, Vector3.zero);
 		}
 		holePlayers.Clear();
 	}
 
 	void Unfreeze()
 	{
-		networkView.RPC ("UnfreezeAll", RPCMode.All);
+		GetComponent<NetworkView>().RPC ("UnfreezeAll", RPCMode.All);
 	}
 	
 	[RPC]
@@ -133,7 +133,7 @@ public class SpellCasting : MonoBehaviour {
 
 	void NewTeam()
 	{
-		networkView.RPC ("UpdateTeam", RPCMode.OthersBuffered, team);
+		GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.OthersBuffered, team);
 	}
 
 	void SetTeam(int newTeam)
@@ -164,10 +164,10 @@ public class SpellCasting : MonoBehaviour {
 		spells.Add (healingWard);
 		spells.Add (placedShield);
 		spells.Add (lifeGrip);
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			playerName = PlayerPrefs.GetString ("Player Name");
-			networkView.RPC ("UpdateName", RPCMode.AllBuffered, playerName);
+			GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
 			//spells.Add(blink);
 			//spells.Add(shield);
 			//spells.Add(waterwave);
@@ -235,7 +235,7 @@ public class SpellCasting : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			//Cast(mob.Update());
 		
@@ -255,7 +255,7 @@ public class SpellCasting : MonoBehaviour {
 					{
 						if(Vector3.Distance(player.transform.position, transform.position) < 4)
 						{
-							player.networkView.RPC("HolePos", RPCMode.All, transform.position);
+							player.GetComponent<NetworkView>().RPC("HolePos", RPCMode.All, transform.position);
 							player.GetComponent<DamageSystem>().Damage (0.15f, 0, transform.position, playerName);
 							gameObject.GetComponent<DamageSystem>().knockback = Vector3.zero;
 							holePlayers.Add(player);
@@ -286,12 +286,12 @@ public class SpellCasting : MonoBehaviour {
 
 				if(Input.GetKeyDown (KeyCode.Y))
 				{
-					networkView.RPC ("Troll1", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("Troll1", RPCMode.All);
 				}
 
 				if(Input.GetKeyDown (KeyCode.U))
 				{
-					networkView.RPC ("Troll2", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("Troll2", RPCMode.All);
 				}
 			}
 			cooldownHandler.SendMessage ("SetSpell1CD", off1.spellCd);
@@ -430,10 +430,10 @@ public class SpellCasting : MonoBehaviour {
 
 	void Cast(string spell)
 	{
-		if(spell != null && networkView.isMine)
+		if(spell != null && GetComponent<NetworkView>().isMine)
 		{
 			Vector3 aim = Camera.main.ScreenToWorldPoint (new Vector3((int)Input.mousePosition.x, (int)Input.mousePosition.y, 0));
-			networkView.RPC ("CastSpell", RPCMode.All, spell, playerName, team, aim.x, aim.y, dmgBoost, Network.AllocateViewID());
+			GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell, playerName, team, aim.x, aim.y, dmgBoost, Network.AllocateViewID());
 		}
 	}
 	
@@ -458,7 +458,7 @@ public class SpellCasting : MonoBehaviour {
 				spellScript.team = spellTeam;
 				spellScript.damage *= damageBoost;
 				spellScript.aimPoint = new Vector2(aimPointX, aimPointY);
-				newSpell.networkView.viewID = id;
+				newSpell.GetComponent<NetworkView>().viewID = id;
 			}
 		}
 	}
@@ -479,25 +479,25 @@ public class SpellCasting : MonoBehaviour {
 	{
 		Debug.Log ("Updating name!");
 		playerName = name;
-		GameObject root = GameObject.Find ("UI Root");
-		GameObject newText = (GameObject)GameObject.Instantiate(nameText);
-		newText.GetComponent<dfFollowObject>().enabled = false;
-		newText.transform.parent = root.transform;
-		newText.GetComponent<dfFollowObject>().attach = gameObject;
-		newText.GetComponent<dfFollowObject>().mainCamera = Camera.main;
-		newText.GetComponent<dfLabel>().Text = name;
-		newText.GetComponent<dfFollowObject>().enabled = true;
-		myName = newText;
+		//GameObject root = GameObject.Find ("UI Root");
+		//GameObject newText = (GameObject)GameObject.Instantiate(nameText);
+		//newText.GetComponent<dfFollowObject>().enabled = false;
+		//newText.transform.parent = root.transform;
+		//newText.GetComponent<dfFollowObject>().attach = gameObject;
+		//newText.GetComponent<dfFollowObject>().mainCamera = Camera.main;
+		//newText.GetComponent<dfLabel>().Text = name;
+		//newText.GetComponent<dfFollowObject>().enabled = true;
+		//myName = newText;
 	}
 
 	void Invis()
 	{
-		myName.GetComponent<dfLabel>().enabled = false;
+		//myName.GetComponent<dfLabel>().enabled = false;
 	}
 
 	void EndInvis()
 	{
-		myName.GetComponent<dfLabel>().enabled = true;
+		//myName.GetComponent<dfLabel>().enabled = true;
 	}
 	
 	[RPC]

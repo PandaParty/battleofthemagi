@@ -33,16 +33,16 @@ public class Shield : MonoBehaviour {
 		spell.Invoke ("KillSelf", duration);
 
 		
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.shieldAmp.currentLevel > 0)
 			{
-				networkView.RPC ("ActivateAmplify", RPCMode.All, upgrading.shieldAmp.currentLevel);
+				GetComponent<NetworkView>().RPC ("ActivateAmplify", RPCMode.All, upgrading.shieldAmp.currentLevel);
 				
 				if(upgrading.shieldAim.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateAim", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateAim", RPCMode.All);
 				}
 			}
 			
@@ -51,7 +51,7 @@ public class Shield : MonoBehaviour {
 				//networkView.RPC ("DecreaseCd", RPCMode.All, upgrading.shieldCd.currentLevel);
 				if(upgrading.shieldAbsorb.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateAbsorb", RPCMode.All, upgrading.shieldAbsorb.currentLevel);
+					GetComponent<NetworkView>().RPC ("ActivateAbsorb", RPCMode.All, upgrading.shieldAbsorb.currentLevel);
 				}
 			}
 		}
@@ -105,11 +105,11 @@ public class Shield : MonoBehaviour {
 						otherSpell.team = spell.team;
 						otherSpell.damage *= amplifyAmount;
 
-						if(reflectAim && networkView.isMine)
+						if(reflectAim && GetComponent<NetworkView>().isMine)
 						{
 							Vector3 aim = Camera.main.ScreenToWorldPoint (new Vector3((int)Input.mousePosition.x, (int)Input.mousePosition.y, 0));
 							reflected = Vector3.Normalize(new Vector3(aim.x, aim.y) - transform.position);
-							otherSpell.networkView.RPC ("SetAim", RPCMode.All, reflected.x, reflected.y, spell.team, amplifyAmount, transform.position);
+							otherSpell.GetComponent<NetworkView>().RPC ("SetAim", RPCMode.All, reflected.x, reflected.y, spell.team, amplifyAmount, transform.position);
 						}
 					}
 				}

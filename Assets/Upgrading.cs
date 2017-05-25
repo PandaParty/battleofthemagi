@@ -91,7 +91,7 @@ public class Upgrading : MonoBehaviour {
 
 	public bool isUpgrading;
 
-	public dfLabel goldText;
+	//public dfLabel goldText;
 
 	// Use this for initialization
 	void SetShit () {
@@ -365,8 +365,8 @@ public class Upgrading : MonoBehaviour {
 
 			gold = spellCasting.gold.ToString();
 
-			//GUI.Label(new Rect(30, 10, 100, 20), "Gold: " + gold);
-			goldText.Text = "Gold:\n" + gold;
+			GUI.Label(new Rect(30, 10, 100, 20), "Gold: " + gold);
+			//goldText.Text = "Gold:\n" + gold;
 			if(GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX", button))
 			{
 				//spellCasting.gold += 100;
@@ -852,7 +852,7 @@ public class UpgradeInfo
 					spellCasting.gold -= cost;
 					if(currentLevel == 1)
 					{
-						GA.API.Design.NewEvent("Upgrade:" + upgradeName);
+						//GA.API.Design.NewEvent("Upgrade:" + upgradeName);
 					}
 					return true;
 				}

@@ -35,16 +35,16 @@ public class RicochetBolt : MonoBehaviour
 				DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
 				if(spell.team != damageSystem.Team())
 				{
-					if(other.networkView.isMine && !other.GetComponent<SpellCasting>().isShielding)
+					if(other.GetComponent<NetworkView>().isMine && !other.GetComponent<SpellCasting>().isShielding)
 					{
 						damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
 						Vector3 normal =  Vector3.Normalize(other.transform.position - gameObject.transform.position);
 						Vector3 reflected = Vector3.Reflect(spell.aimDir, normal);
 						Debug.Log (reflected);
 						reflected = GlobalConstants.RotateZ(reflected, 20 * Mathf.Deg2Rad);
-						networkView.RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, 0f, 0f, Network.AllocateViewID());
+						GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, 0f, 0f, Network.AllocateViewID());
 						reflected = GlobalConstants.RotateZ(reflected, -40 * Mathf.Deg2Rad);
-						networkView.RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, 0f, 0f, Network.AllocateViewID());
+						GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, 0f, 0f, Network.AllocateViewID());
 
 						Network.Destroy (gameObject);
 						Network.Instantiate(hitEffect, this.transform.position, Quaternion.identity, 0);
@@ -58,7 +58,7 @@ public class RicochetBolt : MonoBehaviour
 		{
 			other.attachedRigidbody.AddForce (spell.aimDir * spell.knockFactor * 400);
 
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 				if(castNumber <= 2)
 				{
@@ -75,10 +75,10 @@ public class RicochetBolt : MonoBehaviour
 					Vector3 reflected = Vector3.Reflect(spell.aimDir, hit.normal);
 					//Vector2 reflected = new Vector2(hit.normal.x * spell.aimDir.x, hit.normal.y * spell.aimDir.y);
 					reflected = GlobalConstants.RotateZ(reflected, 20 * Mathf.Deg2Rad);
-					networkView.RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, hit.normal.x, hit.normal.y, Network.AllocateViewID());
+					GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, hit.normal.x, hit.normal.y, Network.AllocateViewID());
 					
 					reflected = GlobalConstants.RotateZ(reflected, -40 * Mathf.Deg2Rad);
-					networkView.RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, hit.normal.x, hit.normal.y, Network.AllocateViewID());
+					GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell.name, spell.owner, spell.damage, spell.team, reflected.x, reflected.y, hit.normal.x, hit.normal.y, Network.AllocateViewID());
 				}
 				Network.Destroy (gameObject);
 				Network.Instantiate(hitEffect, this.transform.position, Quaternion.identity, 0);
@@ -86,7 +86,7 @@ public class RicochetBolt : MonoBehaviour
 		}
 		else if(other.CompareTag ("Spell"))
 		{	
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 				Spell otherSpell = (Spell)other.GetComponent("Spell");
 				if(spell.team != otherSpell.team)
@@ -116,7 +116,7 @@ public class RicochetBolt : MonoBehaviour
 			spellScript.team = spellTeam;
 			spellScript.aimDir = new Vector2(aimPointX, aimPointY);
 			((RicochetBolt)newSpell.GetComponent("RicochetBolt")).castNumber++;
-			newSpell.networkView.viewID = id;
+			newSpell.GetComponent<NetworkView>().viewID = id;
 
 	}
 }

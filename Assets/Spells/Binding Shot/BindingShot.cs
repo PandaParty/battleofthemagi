@@ -28,25 +28,25 @@ public class BindingShot : MonoBehaviour
 		spell.Invoke ("KillSelf", 5);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
 			if(upgrading.bindingDuration.currentLevel > 0)
 			{
-				networkView.RPC ("IncreaseDur", RPCMode.All, upgrading.bindingDuration.currentLevel);
+				GetComponent<NetworkView>().RPC ("IncreaseDur", RPCMode.All, upgrading.bindingDuration.currentLevel);
 				
 				if(upgrading.bindingSilence.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateSilence", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateSilence", RPCMode.All);
 				}
 			}
 			if(upgrading.bindingLength.currentLevel > 0)
 			{
-				networkView.RPC ("DecreaseLength", RPCMode.All, upgrading.bindingLength.currentLevel);
+				GetComponent<NetworkView>().RPC ("DecreaseLength", RPCMode.All, upgrading.bindingLength.currentLevel);
 				
 				if(upgrading.bindingAmplify.currentLevel > 0)
 				{
-					networkView.RPC ("ActivateAmplify", RPCMode.All);
+					GetComponent<NetworkView>().RPC ("ActivateAmplify", RPCMode.All);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ public class BindingShot : MonoBehaviour
 			DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
 			if(spell.team != damageSystem.Team())
 			{
-				if(other.networkView.isMine && !other.GetComponent<SpellCasting>().isShielding && !other.GetComponent<DamageSystem>().invulnerable)
+				if(other.GetComponent<NetworkView>().isMine && !other.GetComponent<SpellCasting>().isShielding && !other.GetComponent<DamageSystem>().invulnerable)
 				{
 					if(amplifies)
 					{
@@ -155,9 +155,9 @@ public class BindingShot : MonoBehaviour
 					}
 
 					GameObject rope = (GameObject) Network.Instantiate(bindRope, this.transform.position, Quaternion.identity, 0);
-					rope.networkView.RPC ("SetKill", RPCMode.All, duration);
+					rope.GetComponent<NetworkView>().RPC ("SetKill", RPCMode.All, duration);
 					SpellCasting spellCasting = (SpellCasting)other.GetComponent("SpellCasting");
-					rope.networkView.RPC ("SetBinds", RPCMode.All, transform.position, spellCasting.playerName);
+					rope.GetComponent<NetworkView>().RPC ("SetBinds", RPCMode.All, transform.position, spellCasting.playerName);
 					Network.Destroy (gameObject);
 					Network.Instantiate(bindingShotHit, this.transform.position, Quaternion.identity, 0);
 				}
@@ -169,7 +169,7 @@ public class BindingShot : MonoBehaviour
 			other.attachedRigidbody.AddForce (spell.aimDir * spell.knockFactor * 400);
 			other.SendMessage("Damage", spell.damage);
 
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 				Network.Destroy (gameObject);
 				Network.Instantiate(bindingShotHit, this.transform.position, Quaternion.identity, 0);
@@ -178,7 +178,7 @@ public class BindingShot : MonoBehaviour
 
 		if(other.CompareTag ("Spell"))
 		{	
-			if(networkView.isMine)
+			if(GetComponent<NetworkView>().isMine)
 			{
 				Spell otherSpell = (Spell)other.GetComponent("Spell");
 				if(spell.team != otherSpell.team)

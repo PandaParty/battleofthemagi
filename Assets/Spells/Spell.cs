@@ -29,10 +29,10 @@ public class Spell : MonoBehaviour {
 		switch(team)
 		{
 		case 1:
-			gameObject.particleSystem.startColor = new Color(0.19f, 0.57f, 0.156f);
+			gameObject.GetComponent<ParticleSystem>().startColor = new Color(0.19f, 0.57f, 0.156f);
 			break;
 		case 2:
-			gameObject.particleSystem.startColor = new Color(0.28f, 0.77f, 0.84f);
+			gameObject.GetComponent<ParticleSystem>().startColor = new Color(0.28f, 0.77f, 0.84f);
 			break;
 		}
 	}

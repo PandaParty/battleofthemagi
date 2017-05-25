@@ -19,7 +19,7 @@ public class SpeedBoost : MonoBehaviour {
 	{
 		if(other.CompareTag("Player"))
 		{
-			if(other.networkView.isMine)
+			if(other.GetComponent<NetworkView>().isMine)
 			{
 				other.GetComponent<SpellCasting>().StartChannelingPowerUp(gameObject, 4);
 			}
@@ -30,7 +30,7 @@ public class SpeedBoost : MonoBehaviour {
 	{
 		if(other.CompareTag("Player"))
 		{
-			if(other.networkView.isMine)
+			if(other.GetComponent<NetworkView>().isMine)
 			{
 				other.SendMessage("EndChannelingPowerUp");
 			}
@@ -48,7 +48,7 @@ public class SpeedBoost : MonoBehaviour {
 	{
 		player.GetComponent<Movement>().SpeedBoost(2f, 10f);
 		player.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, "world");
-		networkView.RPC ("CreateEffect", RPCMode.All, player.GetComponent<SpellCasting>().playerName, 10.0f);
+		GetComponent<NetworkView>().RPC ("CreateEffect", RPCMode.All, player.GetComponent<SpellCasting>().playerName, 10.0f);
 		Network.Destroy(gameObject);
 	}
 	

@@ -22,17 +22,17 @@ public class CooldownInfo : MonoBehaviour {
 	public float spell5CD;
 	public float spell5MaxCD;
 
-	public dfSprite spell1;
-	public dfSprite spell2;
-	public dfSprite spell3;
-	public dfSprite spell4;
-	public dfSprite spell5;
+	//public dfSprite spell1;
+	//public dfSprite spell2;
+	//public dfSprite spell3;
+	//public dfSprite spell4;
+	//public dfSprite spell5;
 
-	public dfSprite upgrade1;
-	public dfSprite upgrade2;
-	public dfSprite upgrade3;
-	public dfSprite upgrade4;
-	public dfSprite upgrade5;
+	//public dfSprite upgrade1;
+	//public dfSprite upgrade2;
+	//public dfSprite upgrade3;
+	//public dfSprite upgrade4;
+	//public dfSprite upgrade5;
 
 
 	public Vector3 player1Pos;
@@ -59,8 +59,8 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell1(string name)
 	{
 		spell1Icon = name;
-		spell1.SpriteName = name;
-		upgrade1.SpriteName = name;
+		//spell1.SpriteName = name;
+		//upgrade1.SpriteName = name;
 	}
 
 
@@ -78,8 +78,8 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell2(string name)
 	{
 		spell2Icon = name;
-		spell2.SpriteName = name;
-		upgrade2.SpriteName = name;
+		//spell2.SpriteName = name;
+		//upgrade2.SpriteName = name;
 	}
 
 
@@ -97,8 +97,8 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell5(string name)
 	{
 		spell5Icon = name;
-		spell5.SpriteName = name;
-		upgrade5.SpriteName = name;
+		//spell5.SpriteName = name;
+		//upgrade5.SpriteName = name;
 	}
 
 
@@ -116,8 +116,8 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell4(string name)
 	{
 		spell4Icon = name;
-		spell4.SpriteName = name;
-		upgrade4.SpriteName = name;
+		//spell4.SpriteName = name;
+		//upgrade4.SpriteName = name;
 	}
 
 
@@ -135,8 +135,8 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell3(string name)
 	{
 		spell3Icon = name;
-		spell3.SpriteName = name;
-		upgrade3.SpriteName = name;
+		//spell3.SpriteName = name;
+		//upgrade3.SpriteName = name;
 	}
 
 

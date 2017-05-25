@@ -94,7 +94,7 @@ public class Movement : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if(networkView.isMine)
+		if(GetComponent<NetworkView>().isMine)
 		{
 			if(holePos != Vector3.zero)
 			{
