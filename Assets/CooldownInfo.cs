@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class CooldownInfo : MonoBehaviour {
@@ -22,20 +23,39 @@ public class CooldownInfo : MonoBehaviour {
 	public float spell5CD;
 	public float spell5MaxCD;
 
-	//public dfSprite spell1;
-	//public dfSprite spell2;
-	//public dfSprite spell3;
-	//public dfSprite spell4;
-	//public dfSprite spell5;
+    public Image spell1;
+    public Image spell2;
+    public Image spell3;
+    public Image spell4;
+    public Image spell5;
 
-	//public dfSprite upgrade1;
-	//public dfSprite upgrade2;
-	//public dfSprite upgrade3;
-	//public dfSprite upgrade4;
-	//public dfSprite upgrade5;
+    public Image sp1Cd;
+    public Image sp2Cd;
+    public Image sp3Cd;
+    public Image sp4Cd;
+    public Image sp5Cd;
+
+    public Sprite fireball;
+    public Sprite bindingShot;
+    public Sprite blink;
+    public Sprite healingWard;
+    public Sprite hook;
+    public Sprite lifeGrip;
+    public Sprite magmaBlast;
+    public Sprite newShield;
+    public Sprite placedShield;
+    public Sprite frostPrison;
+    public Sprite windWalkShield;
+    
+
+    //public dfSprite upgrade1;
+    //public dfSprite upgrade2;
+    //public dfSprite upgrade3;
+    //public dfSprite upgrade4;
+    //public dfSprite upgrade5;
 
 
-	public Vector3 player1Pos;
+    public Vector3 player1Pos;
 	// Use this for initialization
 	void Start () {
 		
@@ -49,6 +69,7 @@ public class CooldownInfo : MonoBehaviour {
 	void SetSpell1CD(float cd)
 	{
 		spell1CD = cd / spell1MaxCD;
+        sp1Cd.fillAmount = spell1CD;
 	}
 
 	void SetSpell1MaxCD(float cd)
@@ -59,6 +80,7 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell1(string name)
 	{
 		spell1Icon = name;
+        spell1.sprite = LoadSpriteFromName(name);
 		//spell1.SpriteName = name;
 		//upgrade1.SpriteName = name;
 	}
@@ -68,7 +90,8 @@ public class CooldownInfo : MonoBehaviour {
 	void SetSpell2CD(float cd)
 	{
 		spell2CD = cd / spell2MaxCD;
-	}
+        sp2Cd.fillAmount = spell2CD;
+    }
 	
 	void SetSpell2MaxCD(float cd)
 	{
@@ -78,16 +101,18 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell2(string name)
 	{
 		spell2Icon = name;
-		//spell2.SpriteName = name;
-		//upgrade2.SpriteName = name;
-	}
+        spell2.sprite = LoadSpriteFromName(name);
+        //spell2.SpriteName = name;
+        //upgrade2.SpriteName = name;
+    }
 
 
 
 	void SetSpell5CD(float cd)
 	{
 		spell5CD = cd / spell5MaxCD;
-	}
+        sp5Cd.fillAmount = spell5CD;
+    }
 	
 	void SetSpell5MaxCD(float cd)
 	{
@@ -97,16 +122,18 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell5(string name)
 	{
 		spell5Icon = name;
-		//spell5.SpriteName = name;
-		//upgrade5.SpriteName = name;
-	}
+        spell5.sprite = LoadSpriteFromName(name);
+        //spell5.SpriteName = name;
+        //upgrade5.SpriteName = name;
+    }
 
 
 
 	void SetSpell4CD(float cd)
 	{
 		spell4CD = cd / spell4MaxCD;
-	}
+        sp4Cd.fillAmount = spell4CD;
+    }
 	
 	void SetSpell4MaxCD(float cd)
 	{
@@ -116,16 +143,18 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell4(string name)
 	{
 		spell4Icon = name;
-		//spell4.SpriteName = name;
-		//upgrade4.SpriteName = name;
-	}
+        spell4.sprite = LoadSpriteFromName(name);
+        //spell4.SpriteName = name;
+        //upgrade4.SpriteName = name;
+    }
 
 
 
 	void SetSpell3CD(float cd)
 	{
 		spell3CD = cd / spell3MaxCD;
-	}
+        sp3Cd.fillAmount = spell3CD;
+    }
 	
 	void SetSpell3MaxCD(float cd)
 	{
@@ -135,10 +164,41 @@ public class CooldownInfo : MonoBehaviour {
 	public void SetSpell3(string name)
 	{
 		spell3Icon = name;
-		//spell3.SpriteName = name;
-		//upgrade3.SpriteName = name;
-	}
+        spell3.sprite = LoadSpriteFromName(name);
+        //spell3.SpriteName = name;
+        //upgrade3.SpriteName = name;
+    }
 
+    Sprite LoadSpriteFromName(string name)
+    {
+        switch(name)
+        {
+            case "Fireball":
+                return fireball;
+            case "Blink":
+                return blink;
+            case "BindingShot":
+                return bindingShot;
+            case "HealingWard":
+                return healingWard;
+            case "Hook":
+                return hook;
+            case "LifeGrip":
+                return lifeGrip;
+            case "MagmaBlastAlternative":
+                return magmaBlast;
+            case "NewShield":
+                return newShield;
+            case "WindWalkShield":
+                return windWalkShield;
+            case "PlacedShield":
+                return placedShield;
+            case "PrisonCenter":
+                return frostPrison;
+            default:
+                return fireball;
+        }
+    }
 
 	void UpdatePlayer1Pos(Vector3 pos)
 	{

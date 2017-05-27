@@ -8,17 +8,10 @@ public class SpellChoices : MonoBehaviour {
 	public string offSpell1;
 	public string offSpell2;
 	public string offSpell3;
-
-	// Use this for initialization
+    
 	void Start () 
 	{
 		DontDestroyOnLoad(gameObject);
-	}
-	
-	// Update is called once per frame
-	void Update () 
-	{
-		
 	}
 
 	void OnLevelWasLoaded (int level)

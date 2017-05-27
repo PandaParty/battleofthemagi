@@ -1,18 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class GameHandler : MonoBehaviour {
 	public int team1Left;
 	public int team2Left;
-	public int team3Left;
-	public int team4Left;
 
 	public int team1Score;
 	public int team2Score;
-	public int team3Score;
-	public int team4Score;
+    public Text team1ScoreText;
+    public Text team2ScoreText;
 
-	public AudioClip winSound;
+    public AudioClip winSound;
 
 	public string winnerText = "";
 
@@ -106,14 +105,6 @@ public class GameHandler : MonoBehaviour {
 			case 2:
 				team2Left ++;
 			break;
-				
-			case 3:
-				team3Left ++;
-			break;
-			
-			case 4:
-				team4Left ++;
-			break;
 		}
 		Debug.Log ("Increased players in team: " + team);
 	}
@@ -131,40 +122,21 @@ public class GameHandler : MonoBehaviour {
 			case 2:
 				team2Left --;
 			break;
-			
-			case 3:
-				team3Left --;
-			break;
-			
-			case 4:
-				team4Left --;
-			break;
 		}
 		bool roundOver = false;
-		if(team2Left + team3Left + team4Left <= 0)
+		if(team2Left <= 0)
 		{
 			team1Score ++;
 			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 1);
 			roundOver = true;
 		}
-		else if(team1Left + team3Left + team4Left <= 0)
+		else if(team1Left <= 0)
 		{
 			team2Score ++;
 			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 2);
 			roundOver = true;
 		}
-		else if(team1Left + team2Left + team4Left <= 0)
-		{
-			team3Score ++;
-			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 3);
-			roundOver = true;
-		}
-		else if(team1Left + team2Left + team3Left == 0)
-		{
-			team4Score ++;
-			GetComponent<NetworkView>().RPC ("WonRound", RPCMode.AllBuffered, 4);
-			roundOver = true;
-		}
+		
 		if(roundOver)
 		{
 			CheckGameOver();
@@ -175,29 +147,17 @@ public class GameHandler : MonoBehaviour {
 	{
 		if(currentRound >= maxRounds)
 		{
-			if(team1Score > team2Score && team1Score > team3Score && team1Score > team4Score)
+			if(team1Score > team2Score)
 			{
 				//team 1 won
 				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 1 has won the match!", 1);
 				//DisplayWinner ("Team 1 has won the match!");
 			}
-			if(team2Score > team1Score && team2Score > team3Score && team2Score > team4Score)
+			if(team2Score > team1Score)
 			{
 				//team 2 won
 				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 2 has won the match!", 2);
 				//DisplayWinner ("Team 2 has won the match!");
-			}
-			if(team3Score > team2Score && team3Score > team1Score && team3Score > team4Score)
-			{
-				//team 3 won
-				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 3 has won the match!", 3);
-				//DisplayWinner ("Team 3 has won the match!");
-			}
-			if(team4Score > team1Score && team4Score > team2Score && team4Score > team3Score)
-			{
-				//team 4 won
-				GetComponent<NetworkView>().RPC ("DisplayWinner", RPCMode.AllBuffered, "Team 4 has won the match!", 4);
-				//DisplayWinner ("Team 4 has won the match!");
 			}
 		}
 		else
@@ -206,43 +166,11 @@ public class GameHandler : MonoBehaviour {
 			{
 				team1Left = 0;
 				team2Left = 0;
-				team3Left = 0;
-				team4Left = 0;
 				Debug.Log ("Sending rpc call to upgrade");
 				GetComponent<NetworkView>().RPC ("SyncScore", RPCMode.All, team1Score, team2Score);
 				GetComponent<NetworkView>().RPC ("Upgrade", RPCMode.AllBuffered);
 				Debug.Log ("RPC call sent");
 			}
-			/*
-			currentRound ++;
-			state = State.Upgrade;
-			Invoke ("SwapToGame", 30);
-
-			if(team2Left + team3Left + team4Left == 0)
-			{
-				team1Score ++;
-				WonRound(1);
-			}
-			
-			else if(team1Left + team3Left + team4Left == 0)
-			{
-				team2Score ++;
-				WonRound(2);
-			}
-			
-			else if(team1Left + team2Left + team4Left == 0)
-			{
-				team3Score ++;
-				WonRound(3);
-			}
-			
-			else if(team1Left + team2Left + team3Left == 0)
-			{
-				team4Score ++;
-				WonRound(4);
-			}
-			*/
-			//networkView.RPC ("RoundEnd", RPCMode.AllBuffered, currentRound);
 		}
 	}
 
@@ -289,7 +217,9 @@ public class GameHandler : MonoBehaviour {
 	{
 		team1Score = score1;
 		team2Score = score2;
-	}
+        team1ScoreText.text = team1Score.ToString();
+        team2ScoreText.text = team2Score.ToString();
+    }
 
 	void SwapToGame()
 	{

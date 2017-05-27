@@ -38,8 +38,18 @@ public class NewConnectionScript : MonoBehaviour {
 	public GUIStyle toggle;
 
     public InputField nameField;
+    public InputField clientRoundField;
+    public GameObject openLobbiesPanel;
+    public GameObject openLobby;
+    public GameObject uiLobby;
+    public GameObject uiClient;
+    public GameObject uiMainMenu;
+    public GameObject lobbyName;
+    public GameObject team1Players;
+    public GameObject team2Players;
+    public Button startGameButton;
 
-	void Start () {
+    void Start () {
 		transferScript = (TransferVariables)GameObject.Find ("TransferVariables").GetComponent("TransferVariables");
         nameField.text = ReadPlayerName();
         //spellSelections.SetActive(false);
@@ -73,147 +83,195 @@ public class NewConnectionScript : MonoBehaviour {
         CancelInvoke("RefreshHostList");
     }
 
-    public void Refresh()
+    public void CloseServer()
     {
-        MasterServer.RequestHostList("BotM" + Application.version);
-        if (MasterServer.PollHostList().Length != 0)
+        if(transferScript.isHost)
         {
-            HostData[] hostData = MasterServer.PollHostList();
-            int i = 0;
-            while (i < hostData.Length)
-            {
-                Debug.Log(hostData[i]);
-            }
+            transferScript.isHost = false;
+            MasterServer.UnregisterHost();
+        }
+        team = "1";
+        ready = false;
+        rounds = "3";
+        playerList.Clear();
+        Network.Disconnect();
+    }
+
+    public void SetRounds(string amount)
+    {
+        rounds = amount;
+        GetComponent<NetworkView>().RPC("SyncRounds", RPCMode.All, rounds);
+    }
+
+    public void StartGameServer()
+    {
+        bool allReady = true;
+        GetComponent<NetworkView>().RPC("SyncRounds", RPCMode.All, rounds);
+        if (allReady)
+        {
+            Debug.Log("Going to try to start the game!");
+            GetComponent<NetworkView>().RPC("StartGame", RPCMode.AllBuffered);
+            Invoke("ServerLoadGame", 1f);
         }
     }
 
+    public void Refresh()
+    {
+        Debug.Log("Refreshing");
+
+        MasterServer.ClearHostList();
+        MasterServer.RequestHostList("BotM" + Application.version);
+        Invoke("UpdateLobbyList", 1);
+    }
+
+    void UpdateLobbyList()
+    {
+        Debug.Log("Updating lobby list");
+        List<GameObject> openLobbies = new List<GameObject>();
+        for (int i = 0; i < openLobbiesPanel.transform.childCount; i++)
+        {
+            openLobbies.Add(openLobbiesPanel.transform.GetChild(i).gameObject);
+        }
+        foreach (GameObject lobby in openLobbies)
+        {
+            GameObject.Destroy(lobby);
+        }
+        HostData[] hostData = MasterServer.PollHostList();
+        GameObject newLobby;
+        for (int i = 0; i < hostData.Length; i++)
+        {
+            Debug.Log("Creating lobby with guid: " + hostData[i].guid);
+            newLobby = GameObject.Instantiate(openLobby, openLobbiesPanel.transform);
+            newLobby.GetComponent<LobbyInfo>().hostData = hostData[i];
+            newLobby.GetComponent<Text>().text = hostData[i].gameName;
+            HostData hd = hostData[i];
+            newLobby.GetComponentInChildren<Button>().onClick.AddListener(() => { ConnectToServer(hd); });
+            newLobby.GetComponentInChildren<Button>().onClick.AddListener(() => { uiMainMenu.SetActive(false); uiClient.SetActive(true); uiLobby.SetActive(true); });
+        }
+    }
+
+    void UpdatePlayerNames()
+    {
+        Debug.Log("Updating player list");
+        List<GameObject> playerNames = new List<GameObject>();
+        for (int i = 0; i < team1Players.transform.childCount; i++)
+        {
+            playerNames.Add(team1Players.transform.GetChild(i).gameObject);
+        }
+        for (int i = 0; i < team2Players.transform.childCount; i++)
+        {
+            playerNames.Add(team2Players.transform.GetChild(i).gameObject);
+        }
+        foreach (GameObject player in playerNames)
+        {
+            GameObject.Destroy(player);
+        }
+        
+        GameObject newPlayerName;
+        foreach (PlayerInfo player in playerList)
+        {
+            Debug.Log("Creating player with name: " + player.name);
+            if(player.team.Equals("1"))
+            {
+                newPlayerName = GameObject.Instantiate(lobbyName, team1Players.transform);
+            }
+            else
+            {
+                newPlayerName = GameObject.Instantiate(lobbyName, team2Players.transform);
+            }
+            newPlayerName.GetComponent<Text>().text = player.name;
+            newPlayerName.transform.Find("Ready").gameObject.SetActive(player.ready);
+        }
+    }
+
+    void ConnectToServer(HostData hostData)
+    {
+        Debug.Log("Trying to connect to server: " + hostData.guid);
+        string tmpIp = "";
+        for (int j = 0; j < hostData.ip.Length; j++)
+        {
+            tmpIp = hostData.ip[j] + " ";
+            j++;
+        }
+        transferScript.connectIp = tmpIp;
+        Network.Connect(tmpIp, 25001);
+        CancelInvoke("RefreshHostList");
+        //spellSelections.SetActive(true);
+    }
+
+    public void SwitchTeam(string newTeam)
+    {
+        team = newTeam;
+        transferScript.team = int.Parse(team);
+        GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.All, team);
+    }
+
+    public void SetReady(bool value)
+    {
+        ready = value;
+        Debug.Log(ready);
+        GetComponent<NetworkView>().RPC("SyncReady", RPCMode.All, ready);
+    }
+
     void OnGUI(){
-		if(menuState == MenuState.MainMenu)
+		if(menuState == MenuState.Lobby)
 		{
-			if (MasterServer.PollHostList().Length != 0) {
-	        	HostData[] hostData = MasterServer.PollHostList();
-	        	int i = 0;
-	        	while (i < hostData.Length) {
-                    Debug.Log(hostData[i]);
-					Upgrading.DrawOutline(new Rect(10, 250, 100, 100), "Game name: " + hostData[i].gameName, text, Color.black);
-					if(GUI.Button (new Rect(220, 250, 100, 20), "", style)){
-						string tmpIp = "";
-	           	 		int j = 0;
-	            		while (j < hostData[i].ip.Length) {
-	                		tmpIp = hostData[i].ip[j] + " ";
-	                		j++;
-	            		}
-						transferScript.connectIp = tmpIp;
-						transferScript.team = int.Parse(team);
-						menuState = MenuState.Lobby;
-						spellSelections.SetActive(true);
-						Network.Connect(tmpIp, 25001);
-						CancelInvoke("RefreshHostList");
-						//Application.LoadLevel("test");
-					}
-					Upgrading.DrawOutline(new Rect(220, 250, 100, 20), "Connect", text, Color.black);
-	            	i++;
-	        	}
-			}
-		}
-		else if(menuState == MenuState.Lobby)
-		{
-			ready = GUI.Toggle(new Rect(10, 150, 20, 20), ready, "", toggle);
-			Upgrading.DrawOutline(new Rect(25, 150, 70, 20), "Ready", text, Color.black);
-			GetComponent<NetworkView>().RPC ("SyncReady", RPCMode.All, ready);
-
-			Upgrading.DrawOutline(new Rect(10, 210, 100, 100), "Team 1", text, Color.black);
-			if(GUI.Button (new Rect(10, 210, 100, 40), "", style))
-			{
-				team = "1";
-				transferScript.team = int.Parse(team);
-				GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.All, team);
-			}
-			Upgrading.DrawOutline(new Rect(10, 220, 100, 20), "Switch team", text, Color.black);
-
-			Upgrading.DrawOutline(new Rect(160, 210, 100, 100), "Team 2", text, Color.black);
-			if(GUI.Button (new Rect(160, 210, 100, 40), "", style))
-			{
-				team = "2";
-				transferScript.team = int.Parse(team);
-				GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.All, team);
-			}
-			Upgrading.DrawOutline(new Rect(160, 220, 100, 20), "Switch team", text, Color.black);
-
-			Upgrading.DrawOutline(new Rect(310, 210, 100, 100), "Team 3", text, Color.black);
-			if(GUI.Button (new Rect(310, 210, 100, 40), "", style))
-			{
-				team = "3";
-				transferScript.team = int.Parse(team);
-				GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.All, team);
-			}
-			Upgrading.DrawOutline(new Rect(310, 220, 100, 20), "Switch team", text, Color.black);
-
-			Upgrading.DrawOutline(new Rect(460, 210, 100, 100), "Team 4", text, Color.black);
-			if(GUI.Button (new Rect(460, 210, 100, 40), "", style))
-			{
-				team = "4";
-				transferScript.team = int.Parse(team);
-				GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.All, team);
-			}
-			Upgrading.DrawOutline(new Rect(460, 220, 100, 20), "Switch team", text, Color.black);
-
-			int team1Count = 0;
-			int team2Count = 0;
-			int team3Count = 0;
-			int team4Count = 0;
-			bool allReady = true;
-			text.alignment = TextAnchor.UpperLeft;
-			for(int i = 0; i < playerList.Count; i++)
-			{
-				if(!playerList[i].ready)
-				{
-					allReady = false;
-				}
-				switch(playerList[i].team)
-				{
-					case "1":
-						Upgrading.DrawOutline(new Rect(10, 270 + team1Count * 20, 100, 100), playerList[i].name, text, Color.black);
-						team1Count ++;
-					break;
-					case "2":
-						Upgrading.DrawOutline(new Rect(160, 270 + team2Count * 20, 100, 100), playerList[i].name, text, Color.black);
-						team2Count ++;
+			//int team1Count = 0;
+			//int team2Count = 0;
+			//int team3Count = 0;
+			//int team4Count = 0;
+			//bool allReady = true;
+			//text.alignment = TextAnchor.UpperLeft;
+			//for(int i = 0; i < playerList.Count; i++)
+			//{
+			//	if(!playerList[i].ready)
+			//	{
+			//		allReady = false;
+			//	}
+			//	switch(playerList[i].team)
+			//	{
+			//		case "1":
+			//			Upgrading.DrawOutline(new Rect(10, 270 + team1Count * 20, 100, 100), playerList[i].name, text, Color.black);
+			//			team1Count ++;
+			//		break;
+			//		case "2":
+			//			Upgrading.DrawOutline(new Rect(160, 270 + team2Count * 20, 100, 100), playerList[i].name, text, Color.black);
+			//			team2Count ++;
 					
-					break;
-					case "3":
-						Upgrading.DrawOutline(new Rect(310, 270 + team3Count * 20, 100, 100), playerList[i].name, text, Color.black);
-						team3Count ++;
+			//		break;
+			//		case "3":
+			//			Upgrading.DrawOutline(new Rect(310, 270 + team3Count * 20, 100, 100), playerList[i].name, text, Color.black);
+			//			team3Count ++;
 					
-					break;
-					case "4":
-						Upgrading.DrawOutline(new Rect(460, 270 + team4Count * 20, 100, 100), playerList[i].name, text, Color.black);
-						team4Count ++;
+			//		break;
+			//		case "4":
+			//			Upgrading.DrawOutline(new Rect(460, 270 + team4Count * 20, 100, 100), playerList[i].name, text, Color.black);
+			//			team4Count ++;
 					
-					break;
-				}
-			}
-			text.alignment = TextAnchor.MiddleCenter;
+			//		break;
+			//	}
+			//}
+			//text.alignment = TextAnchor.MiddleCenter;
 
-			if(allReady)
-			{
-				Upgrading.DrawOutline(new Rect(125, 150, 100, 20), "Everyone ready", text, Color.black);
-			}
+			//if(allReady)
+			//{
+			//	Upgrading.DrawOutline(new Rect(125, 150, 100, 20), "Everyone ready", text, Color.black);
+			//}
 
-			if(Network.isServer)
-			{
-				Upgrading.DrawOutline(new Rect(10, 0, 200, 20), "Amount of rounds", text, Color.black);
-				rounds = GUI.TextField(new Rect(10, 30, 200, 20), rounds, textField);
-				GetComponent<NetworkView>().RPC ("SyncRounds", RPCMode.All, rounds);
-				if(GUI.Button(new Rect(10, 60, 200, 20), "", style) && allReady)
-				{
-					Debug.Log("Going to try to start the game!");
-					GetComponent<NetworkView>().RPC ("StartGame", RPCMode.AllBuffered);
-					Invoke ("ServerLoadGame", 1f);
-				}
-				Upgrading.DrawOutline(new Rect(10, 60, 200, 20), "Start game", text, Color.black);
-				//Application.LoadLevel("test");
-			}
+			//if(Network.isServer)
+			//{
+			//	Upgrading.DrawOutline(new Rect(10, 0, 200, 20), "Amount of rounds", text, Color.black);
+			//	rounds = GUI.TextField(new Rect(10, 30, 200, 20), rounds, textField);
+			//	GetComponent<NetworkView>().RPC ("SyncRounds", RPCMode.All, rounds);
+			//	if(GUI.Button(new Rect(10, 60, 200, 20), "", style) && allReady)
+			//	{
+			//		Debug.Log("Going to try to start the game!");
+			//		GetComponent<NetworkView>().RPC ("StartGame", RPCMode.AllBuffered);
+			//		Invoke ("ServerLoadGame", 1f);
+			//	}
+			//	Upgrading.DrawOutline(new Rect(10, 60, 200, 20), "Start game", text, Color.black);
+			//	//Application.LoadLevel("test");
+			//}
 		}
 	}
 
@@ -229,7 +287,8 @@ public class NewConnectionScript : MonoBehaviour {
 		//networkView.RPC ("AddPlayerToServer", RPCMode.Server, playerName, team);
 		playerList.Add (new PlayerInfo(playerName, team, Network.player));
 		Debug.Log (Network.player);
-	}
+        UpdatePlayerNames();
+    }
 	void OnConnectedToServer()
 	{
 		Debug.Log ("I connected!");
@@ -251,13 +310,15 @@ public class NewConnectionScript : MonoBehaviour {
 	[RPC]
 	void SyncRounds(string rounds)
 	{
+        clientRoundField.text = rounds;
 		transferScript.rounds = int.Parse(rounds);
 	}
 
 	[RPC]
 	void SyncReady(bool value, NetworkMessageInfo info)
-	{
-		if(info.sender+""=="-1")
+    {
+        
+        if (info.sender+""=="-1")
 		{
 			foreach(PlayerInfo playerInfo in playerList)
 			{
@@ -279,7 +340,17 @@ public class NewConnectionScript : MonoBehaviour {
 				}
 			}
 		}
-	}
+        bool allReady = true;
+        for (int i = 0; i < playerList.Count; i++)
+        {
+            if (!playerList[i].ready)
+            {
+                allReady = false;
+            }
+        }
+        startGameButton.interactable = allReady;
+        UpdatePlayerNames();
+    }
 
 	[RPC]
 	void StartGame()
@@ -304,7 +375,7 @@ public class NewConnectionScript : MonoBehaviour {
 		{
 			foreach(PlayerInfo playerInfo in playerList)
 			{
-				if(playerInfo.networkPlayer == Network.player)
+				if(playerInfo.networkPlayer.Equals(Network.player))
 				{
 					playerInfo.team = team;
 					break;
@@ -315,14 +386,15 @@ public class NewConnectionScript : MonoBehaviour {
 		{
 			foreach(PlayerInfo playerInfo in playerList)
 			{
-				if(playerInfo.networkPlayer == info.sender)
+				if(playerInfo.networkPlayer.Equals(info.sender))
 				{
 					playerInfo.team = team;
 					break;
 				}
 			}
 		}
-	}
+        UpdatePlayerNames();
+    }
 
 	[RPC]
 	void PlayerLeft(NetworkPlayer player)
@@ -331,7 +403,7 @@ public class NewConnectionScript : MonoBehaviour {
 
 		foreach(PlayerInfo playerInfo in playerList)
 		{
-			if(playerInfo.networkPlayer == player)
+			if(playerInfo.networkPlayer.Equals(player))
 			{
 				removePlayer = playerInfo;
 				break;
@@ -343,7 +415,9 @@ public class NewConnectionScript : MonoBehaviour {
 		}
 		Network.RemoveRPCs(player);
 		Network.DestroyPlayerObjects(player);
-	}
+
+        UpdatePlayerNames();
+    }
 
 
 	[RPC]
@@ -352,7 +426,7 @@ public class NewConnectionScript : MonoBehaviour {
 		Debug.Log ("Gonna add someone");
 		playerList.Add (new PlayerInfo(name, _team, info.sender));
 		GetComponent<NetworkView>().RPC ("ClearPlayers", RPCMode.Others);
-
+        UpdatePlayerNames();
 		foreach(PlayerInfo playerInfo in playerList)
 		{
 			GetComponent<NetworkView>().RPC ("AddPlayer", RPCMode.Others, playerInfo.name, playerInfo.team, playerInfo.networkPlayer);
@@ -364,8 +438,9 @@ public class NewConnectionScript : MonoBehaviour {
 	void AddPlayer(string name, string _team, NetworkPlayer player)
 	{
 		playerList.Add (new PlayerInfo(name, _team, player));
+        UpdatePlayerNames();
 
-	}
+    }
 
 	[RPC]
 	void ClearPlayers()

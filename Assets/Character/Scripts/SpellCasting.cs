@@ -168,10 +168,9 @@ public class SpellCasting : MonoBehaviour {
 		{
 			playerName = PlayerPrefs.GetString ("Player Name");
 			GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
-			//spells.Add(blink);
-			//spells.Add(shield);
-			//spells.Add(waterwave);
-
+            //spells.Add(blink);
+            //spells.Add(shield);
+            //spells.Add(waterwave);
 
 			GameObject spellChoices = GameObject.Find("SpellChoices");
 			if(spellChoices == null)
@@ -185,31 +184,32 @@ public class SpellCasting : MonoBehaviour {
 			else
 			{
 				SpellChoices spellC = spellChoices.GetComponent<SpellChoices>();
-				foreach(GameObject spell in spells)
+                foreach (GameObject spell in spells)
 				{
 					if(spellC.offSpell1 == spell.name)
 					{
 						offSpell1 = spell;
 					}
 					if(spellC.offSpell2 == spell.name)
-					{
-						offSpell2 = spell;
+                    {
+                        offSpell2 = spell;
 					}
 					if(spellC.offSpell3 == spell.name)
-					{
-						offSpell3 = spell;
+                    {
+                        offSpell3 = spell;
 					}
 					if(spellC.defSpell == spell.name)
-					{
-						defSpell = spell;
+                    {
+                        defSpell = spell;
 					}
 					if(spellC.mobSpell == spell.name)
-					{
-						mobSpell = spell;
+                    {
+                        mobSpell = spell;
 					}
 				}
 			}
-			mob = new SpellInfo(mobSpell, 1);
+            
+            mob = new SpellInfo(mobSpell, 1);
 			def = new SpellInfo(defSpell, 2);
 			off1 = new SpellInfo(offSpell1, 3);
 			off2 = new SpellInfo(offSpell2, 4);
