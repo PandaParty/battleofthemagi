@@ -28,25 +28,26 @@ public class DropMe : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointe
 		
 		Sprite dropSprite = GetDropSprite (data);
 		if (dropSprite != null)
-			receivingImage.overrideSprite = dropSprite;
-
-        switch(slotNumber)
         {
-            case 1:
-                spellChoices.offSpell1 = dropSprite.name;
-                break;
-            case 2:
-                spellChoices.offSpell2 = dropSprite.name;
-                break;
-            case 3:
-                spellChoices.offSpell3 = dropSprite.name;
-                break;
-            case 4:
-                spellChoices.defSpell = dropSprite.name;
-                break;
-            case 5:
-                spellChoices.mobSpell = dropSprite.name;
-                break;
+            receivingImage.overrideSprite = dropSprite;
+            switch (slotNumber)
+            {
+                case 1:
+                    spellChoices.offSpell1 = dropSprite.name;
+                    break;
+                case 2:
+                    spellChoices.offSpell2 = dropSprite.name;
+                    break;
+                case 3:
+                    spellChoices.offSpell3 = dropSprite.name;
+                    break;
+                case 4:
+                    spellChoices.defSpell = dropSprite.name;
+                    break;
+                case 5:
+                    spellChoices.mobSpell = dropSprite.name;
+                    break;
+            }
         }
 	}
 
@@ -73,11 +74,14 @@ public class DropMe : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointe
 		var originalObj = data.pointerDrag;
 		if (originalObj == null)
 			return null;
-		
+
 		var dragMe = originalObj.GetComponent<DragMe>();
 		if (dragMe == null)
 			return null;
-		
+
+        if (dragMe.blocked)
+            return null;
+
 		var srcImage = originalObj.GetComponent<Image>();
 		if (srcImage == null)
 			return null;

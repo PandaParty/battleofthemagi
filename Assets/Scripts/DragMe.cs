@@ -11,11 +11,22 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 	private Dictionary<int,GameObject> m_DraggingIcons = new Dictionary<int, GameObject>();
 	private Dictionary<int, RectTransform> m_DraggingPlanes = new Dictionary<int, RectTransform>();
 
+    public SpellChoices spellChoices;
+
+    public bool blocked = false;
+
 	public void OnBeginDrag(PointerEventData eventData)
 	{
 		var canvas = FindInParents<Canvas>(gameObject);
 		if (canvas == null)
 			return;
+        string name = GetComponent<Image>().sprite.name;
+        if (spellChoices.offSpell1.Equals(name) || spellChoices.offSpell2.Equals(name) || spellChoices.offSpell3.Equals(name) || spellChoices.defSpell.Equals(name) || spellChoices.mobSpell.Equals(name))
+        {
+            Debug.Log("Blocked!");
+            blocked = true;
+            return;
+        }
 
 		// We have clicked something that can be dragged.
 		// What we want to do is create an icon for this.
@@ -45,7 +56,7 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
 	public void OnDrag(PointerEventData eventData)
 	{
-		if (m_DraggingIcons[eventData.pointerId] != null)
+		if (m_DraggingIcons[eventData.pointerId] != null && !blocked)
 			SetDraggedPosition(eventData);
 	}
 
@@ -65,10 +76,13 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
 	public void OnEndDrag(PointerEventData eventData)
 	{
-		if (m_DraggingIcons[eventData.pointerId] != null)
-			Destroy(m_DraggingIcons[eventData.pointerId]);
+        if(!blocked)
+        {
+            if (m_DraggingIcons[eventData.pointerId] != null)
+                Destroy(m_DraggingIcons[eventData.pointerId]);
 
-		m_DraggingIcons[eventData.pointerId] = null;
+            m_DraggingIcons[eventData.pointerId] = null;
+        }
 	}
 
 	static public T FindInParents<T>(GameObject go) where T : Component

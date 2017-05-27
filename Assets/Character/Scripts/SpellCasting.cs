@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.UI;
 
 public class SpellCasting : MonoBehaviour {
 
@@ -55,11 +56,11 @@ public class SpellCasting : MonoBehaviour {
 	Vector2 aimPoint;
 
 	public string playerName;
-	//public GameObject nameText;
+	public GameObject nameText;
 
 	public GameObject myPortal;
 
-	//GameObject myName;
+	GameObject myName;
 
 	float channelTime;
 	bool isChanneling;
@@ -479,26 +480,22 @@ public class SpellCasting : MonoBehaviour {
 	{
 		Debug.Log ("Updating name!");
 		playerName = name;
-		//GameObject root = GameObject.Find ("UI Root");
-		//GameObject newText = (GameObject)GameObject.Instantiate(nameText);
-		//newText.GetComponent<dfFollowObject>().enabled = false;
-		//newText.transform.parent = root.transform;
-		//newText.GetComponent<dfFollowObject>().attach = gameObject;
-		//newText.GetComponent<dfFollowObject>().mainCamera = Camera.main;
-		//newText.GetComponent<dfLabel>().Text = name;
-		//newText.GetComponent<dfFollowObject>().enabled = true;
-		//myName = newText;
+		GameObject canvas = GameObject.Find ("Canvas");
+		GameObject newText = (GameObject)GameObject.Instantiate(nameText, Vector3.zero, Quaternion.identity);
+        newText.GetComponent<FollowObject>().target = gameObject;
+		newText.GetComponent<TextMesh>().text = name;
+		myName = newText;
 	}
 
 	void Invis()
 	{
-		//myName.GetComponent<dfLabel>().enabled = false;
+        myName.GetComponent<TextMesh>().text = "";
 	}
 
 	void EndInvis()
 	{
-		//myName.GetComponent<dfLabel>().enabled = true;
-	}
+        myName.GetComponent<TextMesh>().text = name;
+    }
 	
 	[RPC]
 	public void UpdateTeam(int newTeam)

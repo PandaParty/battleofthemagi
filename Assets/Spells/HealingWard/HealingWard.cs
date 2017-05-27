@@ -90,7 +90,7 @@ public class HealingWard : MonoBehaviour {
 	[RPC]
 	void Duration(int level)
 	{
-		duration += 0.35f * level;
+		duration += 0.7f * level;
 	}
 
 	[RPC]

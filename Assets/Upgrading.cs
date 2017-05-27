@@ -127,7 +127,7 @@ public class Upgrading : MonoBehaviour {
 
 		#endregion
 		healingDuration = new UpgradeInfo("Duration", 3, 40, null, button);
-		healingDuration.tooltip = "Increases duration of heal by 0.35/0.7/1.05 seconds (total heal 24/26/28)";
+		healingDuration.tooltip = "Increases duration of heal by 0.7/1.4/2.1 seconds (total heal 26/31/36)";
 		healingDamageReduct = new UpgradeInfo("Damage \n reduction", 1, 120, healingDuration, button);
 		healingDamageReduct.tooltip = "Reduces damage taken on targets with the heal by 50%";
 
@@ -136,9 +136,9 @@ public class Upgrading : MonoBehaviour {
 		healingBurst = new UpgradeInfo("Instant", 1, 120, healingBloom, button);
 		healingBurst.tooltip = "Now instantly heals the targets for 32 health";
 
-		healingDispel.relative = healingDmg;
-		healingDuration.relative = healingBloom;
-		healingBloom.relative = healingDuration;
+        healingDuration.relative = healingBloom;
+        healingBloom.relative = healingDuration;
+        healingDispel.relative = healingDmg;
 		healingDmg.relative = healingDispel;
 		healingDmg.relative = healingDuration;
 
@@ -214,8 +214,8 @@ public class Upgrading : MonoBehaviour {
 		frostPrisonStorm = new UpgradeInfo("Glacial Storm", 1, 120, frostPrisonRamp, button);
 		frostPrisonStorm.tooltip = "No longer has walls, instead slows and deals additional damage";
 		
-		frostPrisonHealth.relative = frostPrisonRamp;
-		frostPrisonRamp.relative = frostPrisonHealth;
+		frostPrisonDuration.relative = frostPrisonRamp;
+		frostPrisonRamp.relative = frostPrisonDuration;
 		#endregion
 
 		#region Reflect Shield
@@ -367,13 +367,13 @@ public class Upgrading : MonoBehaviour {
 
 			GUI.Label(new Rect(30, 10, 100, 20), "Gold: " + gold);
 			//goldText.Text = "Gold:\n" + gold;
-			if(GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX", button))
-			{
-				//spellCasting.gold += 100;
-			}
+			//if(GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX", button))
+			//{
+			//	//spellCasting.gold += 100;
+			//}
 
 
-			//GUI.DrawTexture(new Rect(80, 45, 1120, 630), background);
+			GUI.DrawTexture(new Rect(80, 45, 1120, 630), background);
 
 			System.Type t = this.GetType();
 			InvokeMethod (1, "Draw" + spellCasting.off1.spellName, t);
