@@ -16,13 +16,11 @@ public class SpellChoices : MonoBehaviour {
 
 	void OnLevelWasLoaded (int level)
 	{
-
 		CooldownInfo cooldownInfo = GameObject.Find ("CooldownInfo").GetComponent<CooldownInfo>();
 		cooldownInfo.SetSpell1(offSpell1);
 		cooldownInfo.SetSpell2(offSpell2);
 		cooldownInfo.SetSpell3(offSpell3);
 		cooldownInfo.SetSpell4(defSpell);
 		cooldownInfo.SetSpell5(mobSpell);
-
 	}
 }

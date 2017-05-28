@@ -1,15 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Networking;
 
-public class DamageSystem : MonoBehaviour {
+[NetworkSettings(sendInterval = 0)]
+public class DamageSystem : NetworkBehaviour {
 	public SpellCasting spellCasting;
 	public Movement movement;
+    [SyncVar]
 	float health = 150;
 	float maxHealth;
+    [SyncVar]
 	public Vector3 knockback;
 	
 	public float damageHealed = 0;
+    [SyncVar]
 	public float damageTaken = 0;
 	
 	public Texture healthBar;
@@ -132,7 +137,7 @@ public class DamageSystem : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if(GetComponent<NetworkView>().isMine && !isDead && !invulnerable)
+		if(isServer && !isDead && !invulnerable)
 		{
 			if(absorb > 0)
 			{
@@ -149,18 +154,6 @@ public class DamageSystem : MonoBehaviour {
 			if(damagedByCountdown <= 0)
 			{
 				lastDamagedBy = "";
-			}
-			if(movement.bound == Vector3.zero)
-			{
-				transform.position += knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
-			}
-			else
-			{
-				Vector3 newPos = transform.position + knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
-				if(Vector3.Distance(newPos, movement.bound) < movement.length)
-				{
-					transform.position = newPos;
-				}
 			}
 			
 			if(knockback.magnitude > 80)
@@ -218,7 +211,7 @@ public class DamageSystem : MonoBehaviour {
 			
 			foreach(Dot dot in removeList)
 			{
-				Network.Destroy(dot.effect);
+				Destroy(dot.effect);
 				dotList.Remove(dot);
 			}
 			
@@ -251,7 +244,7 @@ public class DamageSystem : MonoBehaviour {
 			
 			foreach(Hot hot in removeHots)
 			{
-				Network.Destroy(hot.effect);
+				Destroy(hot.effect);
 				hotList.Remove(hot);
 			}
 		}
@@ -335,13 +328,15 @@ public class DamageSystem : MonoBehaviour {
 	
 	public void AddDot(float dmg, float dur, float tick, string owner, GameObject eff)
 	{
-		GameObject newEffect = (GameObject)Network.Instantiate(eff, transform.position, Quaternion.identity, 0);
+		GameObject newEffect = Instantiate(eff, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(newEffect);
 		dotList.Add (new Dot(dmg, dur, tick, owner, newEffect));
 	}
 	
 	public void AddHot(float heal, float dur, float tick, GameObject eff)
 	{
-		GameObject newEffect = (GameObject)Network.Instantiate(eff, transform.position, Quaternion.identity, 0);
+		GameObject newEffect = Instantiate(eff, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(newEffect);
 		hotList.Add (new Hot(heal, dur, tick, newEffect));
 	}
 	
@@ -396,19 +391,20 @@ public class DamageSystem : MonoBehaviour {
 			}
 			Vector3 knockDir = Vector3.Normalize(transform.position - position);
 			knockback += knockDir * knockFactor * amp * (8f + (maxHealth - health) / (maxHealth/25)) / 1.8f;
-			GetComponent<NetworkView>().RPC ("UpdateHealth", RPCMode.OthersBuffered, health, damageTaken);
 			
-			if(health <= 40 && !playedLastword)
-			{
-				AudioSource.PlayClipAtPoint(lastWord, transform.position);
-				playedLastword = true;
-			}
+			//if(health <= 40 && !playedLastword)
+			//{
+			//	AudioSource.PlayClipAtPoint(lastWord, transform.position);
+			//	playedLastword = true;
+			//}
+
 			GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 			foreach(GameObject player in players)
 			{
 				if(player.GetComponent<SpellCasting>().playerName == damagedBy)
 				{
-					player.GetComponent<NetworkView>().RPC("IncreaseDamageDone", RPCMode.All, damage);
+					//player.GetComponent<NetworkView>().RPC("IncreaseDamageDone", RPCMode.All, damage);
+                    
 					break;
 				}
 			}
@@ -425,52 +421,41 @@ public class DamageSystem : MonoBehaviour {
 					spellCasting.isHooking = false;
 					hook = null;
 				}
+                RpcStopCasting();
 			}
 			
 			if(damage >= 5 || inLava)
 			{
 				if(health <= 0)
 				{
-					if(inLava)
-					{
-						//GA.API.Design.NewEvent("Dead:Lava:In");
-					}
-					else
-					{
-						//GA.API.Design.NewEvent("Dead:Lava:Out");
-					}
-					//GA.API.Design.NewEvent("DeathCount:Player:" + spellCasting.playerName);
-					//GA.API.Design.NewEvent("Player:" + spellCasting.playerName + ":KD", 0);
-					//GA.API.Design.NewEvent("Player:" + lastDamagedBy + ":KD", 1);
-					//GA.API.Design.NewEvent("KillCount:Player:" + lastDamagedBy);
-					isDead = true;
-					spellCasting.isDead = true;
-					knockback = Vector3.zero;
-					lives --;
-					spellCasting.SendMessage("Dead");
-					dotList.Clear();
-					damageTaken = 0;
-					damageHealed = 0;
-					invulnerable = true;
-					GetComponent<NetworkView>().RPC ("Hide", RPCMode.AllBuffered);
-					AudioSource.PlayClipAtPoint(dead, transform.position);
-					if(lives > 0)
-					{
-						Invoke ("SelfRespawn", 5);
-					}
-					else
-					{
-						GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
-					}
-					Debug.Log (lastDamagedBy);
-					foreach(GameObject player in players)
-					{
-						if(player.GetComponent<SpellCasting>().playerName == lastDamagedBy)
-						{
-							//player.networkView.RPC("IncreaseGold", RPCMode.All, 20);
-							break;
-						}
-					}
+					//isDead = true;
+					//spellCasting.isDead = true;
+					//knockback = Vector3.zero;
+					//lives --;
+					//spellCasting.SendMessage("Dead");
+					//dotList.Clear();
+					//damageTaken = 0;
+					//damageHealed = 0;
+					//invulnerable = true;
+					//GetComponent<NetworkView>().RPC ("Hide", RPCMode.AllBuffered);
+					//AudioSource.PlayClipAtPoint(dead, transform.position);
+					//if(lives > 0)
+					//{
+					//	Invoke ("SelfRespawn", 5);
+					//}
+					//else
+					//{
+					//	GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
+					//}
+					//Debug.Log (lastDamagedBy);
+					//foreach(GameObject player in players)
+					//{
+					//	if(player.GetComponent<SpellCasting>().playerName == lastDamagedBy)
+					//	{
+					//		//player.networkView.RPC("IncreaseGold", RPCMode.All, 20);
+					//		break;
+					//	}
+					//}
 				}
 			}
 			
@@ -480,6 +465,22 @@ public class DamageSystem : MonoBehaviour {
 			}
 		}
 	}
+
+    [ClientRpc]
+    void RpcStopCasting()
+    {
+        spellCasting.EndChannelingPowerUp();
+        if (movement.bound != Vector3.zero)
+        {
+            movement.bound = Vector3.zero;
+        }
+        if (hook != null)
+        {
+            hook.SendMessage("TimeOut");
+            spellCasting.isHooking = false;
+            hook = null;
+        }
+    }
 	
 	[RPC]
 	void IncreaseGold(int amount)

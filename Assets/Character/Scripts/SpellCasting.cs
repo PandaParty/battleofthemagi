@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
-public class SpellCasting : MonoBehaviour {
+public class SpellCasting : NetworkBehaviour {
 
 
 	public GameObject blink;
@@ -77,8 +78,6 @@ public class SpellCasting : MonoBehaviour {
 
 	public bool isSilenced = false;
 
-	public bool blackHoling = false;
-
 	Vector3 holePos = Vector3.zero;
 
 	ArrayList holePlayers = new ArrayList();
@@ -99,28 +98,7 @@ public class SpellCasting : MonoBehaviour {
 		}
 		Silence(6);
 	}
-
-	public void BlackHole(float duration)
-	{
-		Debug.Log ("Black hole for " + duration.ToString() + " seconds");
-		holePos = transform.position;
-		Silence(duration);
-		blackHoling = true;
-		Debug.Log (blackHoling);
-		gameObject.GetComponent<DamageSystem>().Amplify(0.5f, duration);
-		Invoke ("EndBlackHole", duration);
-	}
-
-	void EndBlackHole()
-	{
-		blackHoling = false;
-		foreach(GameObject player in holePlayers)
-		{
-			player.GetComponent<NetworkView>().RPC ("HolePos", RPCMode.All, Vector3.zero);
-		}
-		holePlayers.Clear();
-	}
-
+    
 	void Unfreeze()
 	{
 		GetComponent<NetworkView>().RPC ("UnfreezeAll", RPCMode.All);
@@ -165,10 +143,12 @@ public class SpellCasting : MonoBehaviour {
 		spells.Add (healingWard);
 		spells.Add (placedShield);
 		spells.Add (lifeGrip);
-		if(GetComponent<NetworkView>().isMine)
+		if(isLocalPlayer)
 		{
 			playerName = PlayerPrefs.GetString ("Player Name");
-			GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
+            CmdUpdateName(playerName);
+			//GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
+
             //spells.Add(blink);
             //spells.Add(shield);
             //spells.Add(waterwave);
@@ -178,9 +158,9 @@ public class SpellCasting : MonoBehaviour {
 			{
 				mobSpell = blink;
 				defSpell = shield;
-				offSpell1 = bindingShot;
-				offSpell2 = ricochetBolt;
-				offSpell3 = frostPrison;
+				offSpell1 = fireball;
+				offSpell2 = bindingShot;
+				offSpell3 = magmaBlast;
 			}
 			else
 			{
@@ -220,7 +200,7 @@ public class SpellCasting : MonoBehaviour {
 			cooldownHandler.SendMessage ("SetSpell3MaxCD", off3.spellMaxCd);
 			cooldownHandler.SendMessage ("SetSpell4MaxCD", def.spellMaxCd);
 			cooldownHandler.SendMessage ("SetSpell5MaxCD", mob.spellMaxCd);
-			Invoke ("ActivateUpgrading", 1);
+			//Invoke ("ActivateUpgrading", 1);
 		}
 	}
 
@@ -236,66 +216,45 @@ public class SpellCasting : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(GetComponent<NetworkView>().isMine)
+		if(isLocalPlayer)
 		{
-			//Cast(mob.Update());
-		
-			//Cast(def.Update());
+            UpdateSpell(def);
+            UpdateSpell(mob);
+            UpdateSpell(off1);
+            UpdateSpell(off2);
+            UpdateSpell(off3);
 
-			UpdateSpell(def);
-			UpdateSpell(mob);
-			UpdateSpell(off1);
-			UpdateSpell(off2);
-			UpdateSpell(off3);
+            if (!isDead && !GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
+            {
+                if (isCasting)
+                {
+                    StartCasting(currentCast);
+                    if (Input.GetKeyDown(KeyCode.LeftControl))
+                    {
+                        StopCasting();
+                    }
+                }
 
-			if(blackHoling)
-			{
-				foreach(GameObject player in ConnectionHandler_2.players)
-				{
-					if(player.GetComponent<SpellCasting>().team != team)
-					{
-						if(Vector3.Distance(player.transform.position, transform.position) < 4)
-						{
-							player.GetComponent<NetworkView>().RPC("HolePos", RPCMode.All, transform.position);
-							player.GetComponent<DamageSystem>().Damage (0.15f, 0, transform.position, playerName);
-							gameObject.GetComponent<DamageSystem>().knockback = Vector3.zero;
-							holePlayers.Add(player);
-						}
-					}
-				}
-			}
+                //if (isChanneling && !isShielding)
+                //{
+                //    channelTime -= Time.deltaTime;
+                //    if (channelTime <= 0)
+                //    {
+                //        FinishChannelingPowerUp();
+                //    }
+                //}
 
-			if(!isDead && !GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
-			{
-				if(isCasting)
-				{
-					StartCasting (currentCast);
-					if(Input.GetKeyDown(KeyCode.LeftControl))
-					{
-						StopCasting();
-					}
-				}
+                //if (Input.GetKeyDown(KeyCode.Y))
+                //{
+                //    GetComponent<NetworkView>().RPC("Troll1", RPCMode.All);
+                //}
 
-				if(isChanneling && !isShielding)
-				{
-					channelTime -= Time.deltaTime;
-					if(channelTime <= 0)
-					{
-						FinishChannelingPowerUp();
-					}
-				}
-
-				if(Input.GetKeyDown (KeyCode.Y))
-				{
-					GetComponent<NetworkView>().RPC ("Troll1", RPCMode.All);
-				}
-
-				if(Input.GetKeyDown (KeyCode.U))
-				{
-					GetComponent<NetworkView>().RPC ("Troll2", RPCMode.All);
-				}
-			}
-			cooldownHandler.SendMessage ("SetSpell1CD", off1.spellCd);
+                //if (Input.GetKeyDown(KeyCode.U))
+                //{
+                //    GetComponent<NetworkView>().RPC("Troll2", RPCMode.All);
+                //}
+            }
+            cooldownHandler.SendMessage ("SetSpell1CD", off1.spellCd);
 			cooldownHandler.SendMessage ("SetSpell2CD", off2.spellCd);
 			cooldownHandler.SendMessage ("SetSpell3CD", off3.spellCd);
 			cooldownHandler.SendMessage ("SetSpell4CD", def.spellCd);
@@ -382,14 +341,6 @@ public class SpellCasting : MonoBehaviour {
 
 	public void StartCasting(SpellInfo spell)
 	{
-		/*
-		if(spell.spellName.Equals("Hook") && isHooking)
-		{
-			isCasting = false;
-			currentCast = null;
-			return;
-		}
-		*/
 		spell.castTime -= Time.deltaTime;
 		if(spell.castTime <= 0)
 		{
@@ -404,10 +355,6 @@ public class SpellCasting : MonoBehaviour {
 	{
 		isCasting = false;
 		currentCast.castTime = currentCast.totalCastTime;
-		if(blackHoling)
-		{
-			EndBlackHole();
-		}
 	}
 
 	void OnGUI()
@@ -431,15 +378,17 @@ public class SpellCasting : MonoBehaviour {
 
 	void Cast(string spell)
 	{
-		if(spell != null && GetComponent<NetworkView>().isMine)
+		if(spell != null && isLocalPlayer)
 		{
 			Vector3 aim = Camera.main.ScreenToWorldPoint (new Vector3((int)Input.mousePosition.x, (int)Input.mousePosition.y, 0));
-			GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell, playerName, team, aim.x, aim.y, dmgBoost, Network.AllocateViewID());
+            Debug.Log("I cast: " + spell);
+            CmdCastSpell(spell, playerName, team, aim.x, aim.y, dmgBoost);
+			//GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell, playerName, team, aim.x, aim.y, dmgBoost, Network.AllocateViewID());
 		}
 	}
 	
-	[RPC]
-	void CastSpell(string spell, string owner, int spellTeam, float aimPointX, float aimPointY, float damageBoost, NetworkViewID id)
+	[Command]
+	void CmdCastSpell(string spell, string owner, int spellTeam, float aimPointX, float aimPointY, float damageBoost)
 	{
 		if(spell != null)
 		{
@@ -453,13 +402,13 @@ public class SpellCasting : MonoBehaviour {
 			}
 			if(whichSpell != null)
 			{
-				GameObject newSpell = (GameObject)GameObject.Instantiate(whichSpell, transform.position, transform.rotation);
-				Spell spellScript = (Spell)newSpell.GetComponent("Spell");
+				GameObject newSpell = Instantiate(whichSpell, transform.position, transform.rotation);
+				Spell spellScript = (Spell)newSpell.GetComponent<Spell>();
 				spellScript.owner = owner;
 				spellScript.team = spellTeam;
 				spellScript.damage *= damageBoost;
 				spellScript.aimPoint = new Vector2(aimPointX, aimPointY);
-				newSpell.GetComponent<NetworkView>().viewID = id;
+                NetworkServer.Spawn(newSpell);
 			}
 		}
 	}
@@ -475,17 +424,24 @@ public class SpellCasting : MonoBehaviour {
 		isDead = false;
 	}
 
-	[RPC]
-	void UpdateName(string name)
+	[Command]
+	void CmdUpdateName(string name)
 	{
 		Debug.Log ("Updating name!");
 		playerName = name;
 		GameObject canvas = GameObject.Find ("Canvas");
-		GameObject newText = (GameObject)GameObject.Instantiate(nameText, Vector3.zero, Quaternion.identity);
+		GameObject newText = Instantiate(nameText, Vector3.zero, Quaternion.identity);
         newText.GetComponent<FollowObject>().target = gameObject;
-		newText.GetComponent<TextMesh>().text = name;
+        newText.GetComponent<FollowObject>().text = name;
 		myName = newText;
+        NetworkServer.Spawn(newText);
 	}
+
+    [ClientRpc]
+    void RpcUpdateName(string name)
+    {
+
+    }
 
 	void Invis()
 	{
