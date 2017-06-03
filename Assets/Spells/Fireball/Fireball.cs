@@ -46,20 +46,6 @@ public class Fireball : NetworkBehaviour
 		//	}
 		//}
 	}
-
-	void SetSpeed(float speedBoost)
-	{
-		if(speed >= oldSpeed)
-		{
-			speed *= speedBoost;
-			Invoke ("EndSpeedBoost", 0.2f);
-		}
-	}
-
-	void EndSpeedBoost()
-	{
-		speed = oldSpeed;
-	}
 	
 	// Update is called once per frame
 	void Update () {

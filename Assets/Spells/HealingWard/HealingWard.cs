@@ -162,7 +162,7 @@ public class HealingWard : MonoBehaviour {
 						}
 						if(damageReduct)
 						{
-							hitCollider.GetComponent<DamageSystem>().Amplify(0.5f, duration);
+							hitCollider.GetComponent<DamageSystem>().Amplify(-0.5f, duration);
 						}
 					}
 					else

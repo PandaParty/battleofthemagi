@@ -79,20 +79,6 @@ public class IceRang : MonoBehaviour
 		}
 	}
 
-	void SetSpeed(float speedBoost)
-	{
-		if(speed >= oldSpeed)
-		{
-			speed *= speedBoost;
-			Invoke ("EndSpeedBoost", 0.2f);
-		}
-	}
-	
-	void EndSpeedBoost()
-	{
-		speed = oldSpeed;
-	}
-
 	[RPC]
 	void IncreaseSlow(int level)
 	{

@@ -27,6 +27,7 @@ public class SpellCasting : NetworkBehaviour {
 
 	public ArrayList spells = new ArrayList();
 
+    [SyncVar]
 	public int team;
 
 	public GameObject mobSpell;
@@ -87,8 +88,9 @@ public class SpellCasting : NetworkBehaviour {
 
 
 	public GoogleAnalyticsV3 analytics;
+    
 
-	public void Reset()
+    public void Reset()
 	{
 		damageDone = 0;
 		GlobalConstants.isFrozen = true;
@@ -96,7 +98,7 @@ public class SpellCasting : NetworkBehaviour {
 		{
 			Invoke ("Unfreeze", 5.0f);
 		}
-		Silence(6);
+		//Silence(6);
 	}
     
 	void Unfreeze()
@@ -129,7 +131,19 @@ public class SpellCasting : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		cooldownHandler = GameObject.Find ("CooldownInfo");
+        Debug.Log("Trying to set team");
+        Debug.Log(team);
+        if (team == 1)
+        {
+            Debug.Log("To fire");
+            transform.Find("FireGraphics").gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.Log("To ice");
+            transform.Find("IceGraphics").gameObject.SetActive(true);
+        }
+        cooldownHandler = GameObject.Find ("CooldownInfo");
 		spells.Add (blink);
 		spells.Add (fireball);
 		spells.Add (shield);
@@ -147,13 +161,18 @@ public class SpellCasting : NetworkBehaviour {
 		{
 			playerName = PlayerPrefs.GetString ("Player Name");
             CmdUpdateName(playerName);
-			//GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
+            GameObject camera = GameObject.FindGameObjectWithTag("MainCamera");
+            CameraScript camScript = camera.GetComponent<CameraScript>();
+            camScript.PlayerObject = gameObject;
+            //GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
+
+            
 
             //spells.Add(blink);
             //spells.Add(shield);
             //spells.Add(waterwave);
 
-			GameObject spellChoices = GameObject.Find("SpellChoices");
+            GameObject spellChoices = GameObject.Find("SpellChoices");
 			if(spellChoices == null)
 			{
 				mobSpell = blink;
@@ -267,7 +286,8 @@ public class SpellCasting : NetworkBehaviour {
 		isShielding = true;
 	}
 
-	public void Silence(float duration)
+    [ClientRpc]
+	public void RpcSilence(float duration)
 	{
 		if(currentCast != null)
 		{

@@ -140,13 +140,10 @@ public class MenuConnection : NetworkLobbyManager
         Debug.Log("ServerSceneLoadedForPlayer: " + player.playerName);
         if (player.team == "1")
         {
-            gamePlayer.transform.Find("FireGraphics").gameObject.SetActive(true);
             gamePlayer.transform.position = new Vector3(-11, 0);
-
         }
         else if (player.team == "2")
         {
-            gamePlayer.transform.Find("IceGraphics").gameObject.SetActive(true);
             gamePlayer.transform.position = new Vector3(11, 0);
         }
         return true;

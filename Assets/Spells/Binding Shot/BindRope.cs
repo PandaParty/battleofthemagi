@@ -12,12 +12,11 @@ public class BindRope : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		lineRenderer.SetPosition (0, boundTo.position);
-		lineRenderer.SetPosition (1, boundPos);
+		//lineRenderer.SetPosition (0, boundTo.position);
+		//lineRenderer.SetPosition (1, boundPos);
 	}
-
-	[RPC]
-	void SetKill(float duration)
+    
+	public void SetKill(float duration)
 	{
 		Invoke ("KillSelf", duration);
 	}
@@ -26,9 +25,8 @@ public class BindRope : MonoBehaviour {
 	{
 		Network.Destroy(gameObject);
 	}
-
-	[RPC]
-	void SetBinds(Vector3 bindPos, string bindTo)
+    
+	public void SetBinds(Vector3 bindPos, string bindTo)
 	{
 		boundPos = bindPos;
 

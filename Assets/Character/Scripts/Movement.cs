@@ -60,23 +60,14 @@ public class Movement : NetworkBehaviour {
 		//bound = boundTo;
 	}
 
-	public void Bound(float duration, float length)
+    [ClientRpc]
+	public void RpcBound(float duration, float length)
 	{
 		bound = transform.position;
-		length = length;
+		this.length = length;
 		Invoke ("RemoveBound", duration);
 	}
-
-    [RPC]
-    void HolePos(Vector3 pos)
-    {
-        holePos = pos;
-        if (!spellCasting.isSilenced)
-        {
-            spellCasting.Silence(0.2f);
-        }
-    }
-
+    
     public void Reset()
 	{
 		Vector3 spawnPos = Vector3.zero;
