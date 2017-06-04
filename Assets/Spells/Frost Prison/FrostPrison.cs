@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class FrostPrison : MonoBehaviour {
+public class FrostPrison : NetworkBehaviour {
 	public Spell spell;
 	public float duration;
 	public float formTime;
@@ -46,58 +47,58 @@ public class FrostPrison : MonoBehaviour {
 		Invoke ("Spawn", formTime);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-			if(upgrading.frostPrisonHealth.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("UpgradeHealth", RPCMode.AllBuffered);
-				Debug.Log ("Upgrading health");
+		//if(GetComponent<NetworkView>().isMine)
+		//{
+		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
+		//	if(upgrading.frostPrisonHealth.currentLevel > 0)
+		//	{
+		//		GetComponent<NetworkView>().RPC ("UpgradeHealth", RPCMode.AllBuffered);
+		//		Debug.Log ("Upgrading health");
 				
-				if(upgrading.frostPrisonReflect.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("ActivateReflect", RPCMode.AllBuffered);
-				}
-			}
+		//		if(upgrading.frostPrisonReflect.currentLevel > 0)
+		//		{
+		//			GetComponent<NetworkView>().RPC ("ActivateReflect", RPCMode.AllBuffered);
+		//		}
+		//	}
 
-			if(upgrading.frostPrisonDuration.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.AllBuffered, upgrading.frostPrisonDuration.currentLevel);
+		//	if(upgrading.frostPrisonDuration.currentLevel > 0)
+		//	{
+		//		GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.AllBuffered, upgrading.frostPrisonDuration.currentLevel);
 
-				if(upgrading.frostPrisonCircleWall.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("CircleWall", RPCMode.AllBuffered);
-				}
-			}
+		//		if(upgrading.frostPrisonCircleWall.currentLevel > 0)
+		//		{
+		//			GetComponent<NetworkView>().RPC ("CircleWall", RPCMode.AllBuffered);
+		//		}
+		//	}
 
-			if(upgrading.frostPrisonRamp.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.frostPrisonRamp.currentLevel);
-				if(upgrading.frostPrisonStorm.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("ActivateStorm", RPCMode.AllBuffered);
-				}
-			}
-		}
+		//	if(upgrading.frostPrisonRamp.currentLevel > 0)
+		//	{
+		//		GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.frostPrisonRamp.currentLevel);
+		//		if(upgrading.frostPrisonStorm.currentLevel > 0)
+		//		{
+		//			GetComponent<NetworkView>().RPC ("ActivateStorm", RPCMode.AllBuffered);
+		//		}
+		//	}
+		//}
 	}
 
 	void SetColor()
 	{
 		switch(spell.team)
 		{
-		case 1:
-			SpriteRenderer[] renderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
-			foreach(SpriteRenderer renderer in renderers)
-			{
-				Debug.Log ("Setting a color");
-				renderer.color = new Color(0.43f, 1f, 0.46f);
-			}
+		    case 1:
+			    SpriteRenderer[] renderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
+			    foreach(SpriteRenderer renderer in renderers)
+			    {
+				    Debug.Log ("Setting a color");
+				    renderer.color = new Color(0.43f, 1f, 0.46f);
+			    }
 
-			ParticleSystem[] systems = gameObject.GetComponentsInChildren<ParticleSystem>();
-			foreach(ParticleSystem system in systems)
-			{
-				system.startColor = new Color(0.19f, 0.57f, 0.156f);
-			}
+			    ParticleSystem[] systems = gameObject.GetComponentsInChildren<ParticleSystem>();
+			    foreach(ParticleSystem system in systems)
+			    {
+				    system.startColor = new Color(0.19f, 0.57f, 0.156f);
+			    }
 
 			break;
 		}
@@ -189,6 +190,9 @@ public class FrostPrison : MonoBehaviour {
 
 	void OnTriggerStay2D(Collider2D other)
 	{
+        if (!isServer)
+            return;
+
 		if(formed)
 		{
 			if(other.CompareTag("Player"))
@@ -196,13 +200,10 @@ public class FrostPrison : MonoBehaviour {
 				DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
 				if(spell.team != damageSystem.Team())
 				{
-					if(other.GetComponent<NetworkView>().isMine)
+					damageSystem.Damage(spell.damage * (baseDamage + (currentTime/(duration * 4.4f))), spell.knockFactor, transform.position, spell.owner);
+					if(stormActive)
 					{
-						damageSystem.Damage(spell.damage * (baseDamage + (currentTime/(duration * 4.4f))), spell.knockFactor, transform.position, spell.owner);
-						if(stormActive)
-						{
-							other.GetComponent<Movement>().SpeedBoost(0.5f, 0.2f);
-						}
+						other.GetComponent<Movement>().SpeedBoost(0.5f, 0.2f);
 					}
 				}
 			}

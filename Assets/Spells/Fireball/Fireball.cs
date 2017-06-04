@@ -102,7 +102,6 @@ public class Fireball : NetworkBehaviour
 
 		if(other.CompareTag ("Obstacle"))
 		{
-            other.attachedRigidbody.AddForce(spell.aimDir * spell.knockFactor * 400);
             other.SendMessage("Damage", spell.damage, SendMessageOptions.DontRequireReceiver);
             Destroy(gameObject);
             GameObject explo = Instantiate(fireballExplo, transform.position, Quaternion.identity);

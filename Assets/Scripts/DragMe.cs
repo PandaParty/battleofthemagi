@@ -23,9 +23,12 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         string name = GetComponent<Image>().sprite.name;
         if (spellChoices.offSpell1.Equals(name) || spellChoices.offSpell2.Equals(name) || spellChoices.offSpell3.Equals(name) || spellChoices.defSpell.Equals(name) || spellChoices.mobSpell.Equals(name))
         {
-            Debug.Log("Blocked!");
             blocked = true;
             return;
+        }
+        else
+        {
+            blocked = false;
         }
 
 		// We have clicked something that can be dragged.

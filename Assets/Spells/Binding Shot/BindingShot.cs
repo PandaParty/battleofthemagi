@@ -120,7 +120,6 @@ public class BindingShot : NetworkBehaviour
 
 		if(other.CompareTag ("Obstacle"))
 		{
-			other.attachedRigidbody.AddForce (spell.aimDir * spell.knockFactor * 400);
 			other.SendMessage("Damage", spell.damage);
             GameObject hit = Instantiate(bindingShotHit, this.transform.position, Quaternion.identity);
             NetworkServer.Spawn(hit);
