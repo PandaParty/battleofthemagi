@@ -5,7 +5,6 @@ using UnityEngine.Networking;
 public class Blink : NetworkBehaviour {
 	public Spell spell;
 	public float speed = 50;
-    [SyncVar]
 	public GameObject owner;
 	public AudioClip cast;
 	public AudioClip hit;
@@ -32,10 +31,11 @@ public class Blink : NetworkBehaviour {
 		players = GameObject.FindGameObjectsWithTag("Player");
 		foreach(GameObject player in players)
 		{
-			string playerName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			if(ownerName == playerName)
+			string playerName = player.GetComponent<SpellCasting>().playerName;
+			if(ownerName.Equals(playerName))
 			{
 				owner = player;
+                RpcSetOwner(owner);
 				break;
 			}
         }
@@ -67,8 +67,9 @@ public class Blink : NetworkBehaviour {
 	void Update () {
 		if(isServer && !stopped)
 		{
-			owner.transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y, 0) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
-			transform.position = owner.transform.position;
+            Vector3 velocity = new Vector3(spell.aimDir.x, spell.aimDir.y, 0) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
+            owner.GetComponent<Movement>().RpcMove(velocity);
+			transform.position += velocity;
 			unitsTravelled += 1 / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 			owner.GetComponent<DamageSystem>().Invulnerability(0.1f);
 
@@ -135,6 +136,13 @@ public class Blink : NetworkBehaviour {
         NetworkServer.Spawn(groundEffect);
 	}
 	
+    [ClientRpc]
+    void RpcSetOwner(GameObject o)
+    {
+        Debug.Log("setting owner");
+        owner = o;
+    }
+
 	[ClientRpc]
 	void RpcStartBlink()
 	{

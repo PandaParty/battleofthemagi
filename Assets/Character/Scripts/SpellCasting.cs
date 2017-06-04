@@ -131,16 +131,12 @@ public class SpellCasting : NetworkBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        Debug.Log("Trying to set team");
-        Debug.Log(team);
         if (team == 1)
         {
-            Debug.Log("To fire");
             transform.Find("FireGraphics").gameObject.SetActive(true);
         }
         else
         {
-            Debug.Log("To ice");
             transform.Find("IceGraphics").gameObject.SetActive(true);
         }
         cooldownHandler = GameObject.Find ("CooldownInfo");

@@ -121,6 +121,13 @@ public class Movement : NetworkBehaviour {
         transform.position = new Vector3(transform.position.x, transform.position.y, 0);
 	}
 
+    [ClientRpc]
+    public void RpcMove(Vector3 velocity)
+    {
+        Debug.Log("I should move");
+        transform.position += velocity;
+    }
+
 	//void LimitScreen()
 	//{
 	//	//Horizontal screen limits
