@@ -12,16 +12,17 @@ public class MagmaBlast : NetworkBehaviour {
 	void Start () {
 		spell.SetColor();
 		AudioSource.PlayClipAtPoint(cast, transform.position);
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         if (!isServer)
             return;
 
-		string ownerName = spell.owner;
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        string ownerName = spell.owner;
+        Debug.Log(players.Length);
 		//Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-            
-		foreach(GameObject player in ConnectionHandler_2.players)
+        
+		foreach(GameObject player in players)
 		{
-			DamageSystem damageSystem = player.GetComponent<DamageSystem>();
+            DamageSystem damageSystem = player.GetComponent<DamageSystem>();
 			if(spell.team != damageSystem.Team() && !damageSystem.isDead)
 			{
 				CircleCollider2D coll = (CircleCollider2D)player.GetComponent("CircleCollider2D");

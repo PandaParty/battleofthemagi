@@ -90,6 +90,7 @@ public class Movement : NetworkBehaviour {
         if (!isLocalPlayer)
             return;
 
+        GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         if (!spellCasting.isCasting && !GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
         {
             Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
@@ -126,6 +127,7 @@ public class Movement : NetworkBehaviour {
     {
         Debug.Log("I should move");
         transform.position += velocity;
+        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
     }
 
 	//void LimitScreen()
