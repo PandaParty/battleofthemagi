@@ -7,3 +7,4 @@ Battle of the Magi is a top-down wizard arena brawler, where team tactics and st
 * Utilize spell synergies with your team for devastating combos.
 * Upgrade your spells in between rounds to adapt your strategy.
 
+The game is currently in early development, with many more features and spells planned for the future.
