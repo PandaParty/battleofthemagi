@@ -42,12 +42,13 @@ public class Movement : NetworkBehaviour {
 		oldSpeed = speed;
 	}
 
-	public void SpeedBoost(float boost, float duration)
+    [ClientRpc]
+	public void RpcSpeedBoost(float boost, float duration)
 	{
 		CancelInvoke("EndSpeedBoost");
 		Invoke ("EndSpeedBoost", duration);
 		//oldSpeed = speed;
-		speed *= boost;
+		speed = oldSpeed * boost;
 	}
 
 	void EndSpeedBoost()
@@ -160,16 +161,6 @@ public class Movement : NetworkBehaviour {
 	void RemoveBound()
 	{
 		bound = Vector3.zero;
-	}
-
-	void Invis()
-	{
-		SpeedBoost(1.5f, 4f);
-	}
-
-	void EndInvis()
-	{
-		EndSpeedBoost();
 	}
 
 }

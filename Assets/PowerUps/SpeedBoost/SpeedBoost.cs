@@ -46,7 +46,7 @@ public class SpeedBoost : MonoBehaviour {
 
 	void Capped(GameObject player)
 	{
-		player.GetComponent<Movement>().SpeedBoost(2f, 10f);
+		//player.GetComponent<Movement>().SpeedBoost(2f, 10f);
 		player.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, "world");
 		GetComponent<NetworkView>().RPC ("CreateEffect", RPCMode.All, player.GetComponent<SpellCasting>().playerName, 10.0f);
 		Network.Destroy(gameObject);

@@ -285,13 +285,14 @@ public class DamageSystem : NetworkBehaviour {
 			//GUI.DrawTexture (new Rect(playerPos.x + 60 - currentDamageTaken * 120, Screen.height - playerPos.y - 59, 2, 10), vertLine);
 		}
 	}
-
-	[RPC]
-	void DmgInvis()
+    
+	public void DmgInvis()
 	{
-		Debug.Log ("Damage system invis!");
+        Debug.Log ("Damage system invis!");
 		isInvis = true;
-		foreach(Hot hot in hotList)
+        if (!isServer)
+            return;
+        foreach (Hot hot in hotList)
 		{
 			Debug.Log ("Heres a hot!");
 			hot.effect.SetActive(false);
@@ -303,10 +304,13 @@ public class DamageSystem : NetworkBehaviour {
 		}
 	}
 
-	void EndInvis()
+	public void EndInvis()
 	{
 		isInvis = false;
-		foreach(Hot hot in hotList)
+
+        if (!isServer)
+            return;
+        foreach (Hot hot in hotList)
 		{
 			hot.effect.SetActive(true);
 		}

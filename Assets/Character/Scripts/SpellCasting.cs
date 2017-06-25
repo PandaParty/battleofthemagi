@@ -57,11 +57,12 @@ public class SpellCasting : NetworkBehaviour {
 
 	Vector2 aimPoint;
 
-	public string playerName;
+    [SyncVar]
+    public string playerName;
 	public GameObject nameText;
 
 	public GameObject myPortal;
-
+    
 	GameObject myName;
 
 	float channelTime;
@@ -451,22 +452,38 @@ public class SpellCasting : NetworkBehaviour {
         newText.GetComponent<FollowObject>().text = name;
 		myName = newText;
         NetworkServer.Spawn(newText);
+        Invoke("SyncNames", 1);
 	}
 
-    [ClientRpc]
-    void RpcUpdateName(string name)
+    void SyncNames()
     {
-
+        RpcSyncNames();
     }
 
-	void Invis()
+    [ClientRpc]
+    void RpcSyncNames()
+    {
+        Debug.Log("Trying to sync name to: " + playerName);
+        GameObject[] names = GameObject.FindGameObjectsWithTag("PlayerName");
+        foreach (GameObject n in names)
+        {
+            Debug.Log("This contains: " + n.GetComponent<FollowObject>().text);
+            if (n.GetComponent<FollowObject>().text.Equals(playerName))
+            {
+                Debug.Log("Found someone to sync name with");
+                myName = n;
+            }
+        }
+    }
+    
+	public void Invis()
 	{
         myName.GetComponent<TextMesh>().text = "";
 	}
 
-	void EndInvis()
+    public void EndInvis()
 	{
-        myName.GetComponent<TextMesh>().text = name;
+        myName.GetComponent<TextMesh>().text = playerName;
     }
 	
 	[RPC]

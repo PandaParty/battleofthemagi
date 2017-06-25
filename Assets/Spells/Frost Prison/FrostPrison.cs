@@ -203,7 +203,7 @@ public class FrostPrison : NetworkBehaviour {
 					damageSystem.Damage(spell.damage * (baseDamage + (currentTime/(duration * 4.4f))), spell.knockFactor, transform.position, spell.owner);
 					if(stormActive)
 					{
-						other.GetComponent<Movement>().SpeedBoost(0.5f, 0.2f);
+						other.GetComponent<Movement>().RpcSpeedBoost(0.5f, 0.2f);
 					}
 				}
 			}

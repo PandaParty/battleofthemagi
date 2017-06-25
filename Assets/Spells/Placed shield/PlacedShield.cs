@@ -120,14 +120,14 @@ public class PlacedShield : MonoBehaviour {
 						{
 							if(dmgSys.movement.speed <= dmgSys.movement.oldSpeed)
 							{
-								dmgSys.movement.SpeedBoost(1.5f, 0.1f);
+								//dmgSys.movement.SpeedBoost(1.5f, 0.1f);
 							}
 						}
 						else if(speedBoost)
 						{
 							if(dmgSys.movement.speed <= dmgSys.movement.oldSpeed)
 							{
-								dmgSys.movement.SpeedBoost(2f, 0.1f);
+								//dmgSys.movement.SpeedBoost(2f, 0.1f);
 							}
 						}
 						else if(knockImmune)

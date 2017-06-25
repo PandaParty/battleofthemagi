@@ -173,7 +173,7 @@ public class IceRang : MonoBehaviour
 				if(other.GetComponent<NetworkView>().isMine && !other.GetComponent<SpellCasting>().isShielding)
 				{
 					damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
-					other.GetComponent<Movement>().SpeedBoost(slowAmount, 3);
+					//other.GetComponent<Movement>().SpeedBoost(slowAmount, 3);
 					//Implement bouncing
 					Network.Destroy (gameObject);
 					Network.Instantiate(fireballExplo, this.transform.position, Quaternion.identity, 0);
