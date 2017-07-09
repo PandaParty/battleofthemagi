@@ -110,7 +110,7 @@ public class Fireball : NetworkBehaviour
 		else if(other.CompareTag ("Spell"))
 		{
             Spell otherSpell = (Spell)other.GetComponent("Spell");
-            if (spell.team != otherSpell.team)
+            if (spell.team != otherSpell.team && otherSpell.type == Spell.spellType.Projectile)
             {
                 if(spell.destroysSpells)
                 {
