@@ -160,6 +160,9 @@ public class Blink : NetworkBehaviour {
 	[ClientRpc]
 	void RpcEndBlink()
 	{
+        if (owner.GetComponent<DamageSystem>().isDead)
+            return;
+
 		Debug.Log ("Ending blink");
 		owner.GetComponent<Collider2D>().enabled = true;
 

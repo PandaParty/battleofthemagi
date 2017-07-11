@@ -10,6 +10,9 @@ public class LobbyPlayer : NetworkLobbyPlayer {
     [SyncVar(hook = "OnMyTeam")]
     public string team;
 
+    [SyncVar]
+    public int rounds;
+
     MenuConnection menuLobby;
 
     public void Awake()
@@ -78,6 +81,20 @@ public class LobbyPlayer : NetworkLobbyPlayer {
         team1Button.onClick.AddListener(OnClickTeam1);
         Button team2Button = GameObject.Find("Team 2").GetComponent<Button>();
         team2Button.onClick.AddListener(OnClickTeam2);
+        CmdUpdatePlayerList();
+    }
+    
+    [Command]
+    public void CmdUpdatePlayerList()
+    {
+        //UpdatePlayerList();
+        RpcUpdatePlayerList();
+    }
+
+    [ClientRpc]
+    public void RpcUpdatePlayerList()
+    {
+        menuLobby.UpdatePlayerList();
     }
 
     void OnClickTeam1()
@@ -105,6 +122,5 @@ public class LobbyPlayer : NetworkLobbyPlayer {
     public void OnDestroy()
     {
         menuLobby.RemovePlayer(this);
-
     }
 }

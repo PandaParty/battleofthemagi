@@ -134,9 +134,9 @@ public class DamageSystem : NetworkBehaviour {
 		absorb = 0;
 		Network.Destroy(currentShieldEffect);
 	}
-
-	// Update is called once per frame
-	void Update () {
+    
+	void Update ()
+    {
 		if(isServer && !isDead && !invulnerable)
 		{
 			if(absorb > 0)
@@ -275,7 +275,7 @@ public class DamageSystem : NetworkBehaviour {
 	
 	void OnGUI()
 	{
-		if(!isInvis && GameHandler.state != GameHandler.State.Upgrade)
+		if(!isDead && !isInvis && GameHandler.state != GameHandler.State.Upgrade)
 		{
 			float currentHealth = health / maxHealth;
 			float currentDamageTaken = (damageTaken * 0.5f) / maxHealth;
@@ -432,35 +432,26 @@ public class DamageSystem : NetworkBehaviour {
 			{
 				if(health <= 0)
 				{
-					//isDead = true;
-					//spellCasting.isDead = true;
-					//knockback = Vector3.zero;
-					//lives --;
-					//spellCasting.SendMessage("Dead");
-					//dotList.Clear();
-					//damageTaken = 0;
-					//damageHealed = 0;
-					//invulnerable = true;
-					//GetComponent<NetworkView>().RPC ("Hide", RPCMode.AllBuffered);
-					//AudioSource.PlayClipAtPoint(dead, transform.position);
-					//if(lives > 0)
-					//{
-					//	Invoke ("SelfRespawn", 5);
-					//}
-					//else
-					//{
-					//	GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
-					//}
-					//Debug.Log (lastDamagedBy);
-					//foreach(GameObject player in players)
-					//{
-					//	if(player.GetComponent<SpellCasting>().playerName == lastDamagedBy)
-					//	{
-					//		//player.networkView.RPC("IncreaseGold", RPCMode.All, 20);
-					//		break;
-					//	}
-					//}
-				}
+					isDead = true;
+					spellCasting.isDead = true;
+					knockback = Vector3.zero;
+                    lives--;
+                    spellCasting.RpcDead();
+                    dotList.Clear();
+                    damageTaken = 0;
+                    damageHealed = 0;
+                    invulnerable = true;
+                    RpcHide();
+                    AudioSource.PlayClipAtPoint(dead, transform.position);
+                    //if(lives > 0)
+                    //{
+                    //	Invoke ("SelfRespawn", 5);
+                    //}
+                    //else
+                    //{
+                    //	GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
+                    //}
+                }
 			}
 			
 			if(damage < 0)
@@ -492,41 +483,6 @@ public class DamageSystem : NetworkBehaviour {
 		if(GetComponent<NetworkView>().isMine)
 		{
 			spellCasting.gold += amount;
-		}
-	}
-	
-	[RPC]
-	void HookDamage(float damage, float knockFactor, Vector3 position, string owner)
-	{
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Debug.Log ("Time to take some damage!");
-			/*
-			if(health > 0)
-			{
-				health = Mathf.Clamp (health - damage, 0, maxHealth);
-				Vector3 knockDir = Vector3.Normalize(transform.position - position);
-				knockback += knockDir * knockFactor * (0.5f + (maxHealth - health) / (maxHealth/5));
-				networkView.RPC ("UpdateHealth", RPCMode.OthersBuffered, health);
-				if(health <= 0)
-				{
-					isDead = true;
-					lives --;
-					spellCasting.SendMessage("Dead");
-					knockback = Vector3.zero;
-					networkView.RPC ("Hide", RPCMode.AllBuffered);
-					if(lives > 0)
-					{
-						Invoke ("SelfRespawn", 5);
-					}
-					else
-					{
-						GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
-					}
-				}
-			}
-			*/
-			Damage (damage, knockFactor, position, owner);
 		}
 	}
 	
@@ -577,8 +533,8 @@ public class DamageSystem : NetworkBehaviour {
 		
 	}
 	
-	[RPC]
-	public void Hide()
+	[ClientRpc]
+	public void RpcHide()
 	{
 		GetComponent<Collider2D>().enabled = false;
 		//Check dis out yo can't hide this shizzle

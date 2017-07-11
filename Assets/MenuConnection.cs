@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.Networking.Match;
+using UnityEngine.Networking.Types;
 using UnityEngine.UI;
 
 public class MenuConnection : NetworkLobbyManager
@@ -9,6 +11,8 @@ public class MenuConnection : NetworkLobbyManager
     List<LobbyPlayer> playerList = new List<LobbyPlayer>();
     public InputField nameInput;
     public Button startGameButton;
+    public VerticalLayoutGroup lobbyList;
+    public Button lobbyItem;
 
     public GameObject lobbyName;
     public GameObject team1Players;
@@ -17,8 +21,17 @@ public class MenuConnection : NetworkLobbyManager
     public GameObject iceWizard;
     public GameObject fireWizard;
 
+    public GameObject menulobby;
+    public GameObject menuMain;
+    public GameObject menuclient;
+    public GameObject menuhost;
+
+    public int rounds = 3;
+
     public void Awake()
     {
+        matchMaker = gameObject.AddComponent<NetworkMatch>();
+
         if (PlayerPrefs.HasKey("Player Name"))
         {
             nameInput.text = PlayerPrefs.GetString("Player Name");
@@ -33,6 +46,47 @@ public class MenuConnection : NetworkLobbyManager
     public void OnClickStartHost()
     {
         StartHost();
+    }
+
+    public void OnClickStartMM()
+    {
+        matchMaker.CreateMatch(PlayerPrefs.GetString("Player Name") + "'s game", 6, true, "", "", "", 0, 0, OnMatchCreate);
+    }
+
+    public void OnClickRefresh()
+    {
+        matchMaker.ListMatches(0, 10, "", true, 0, 0, OnMatchList);
+    }
+
+    public override void OnMatchList(bool success, string extendedInfo, List<MatchInfoSnapshot> matchList)
+    {
+        base.OnMatchList(success, extendedInfo, matchList);
+        foreach(Transform child in lobbyList.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        foreach(MatchInfoSnapshot info in matchList)
+        {
+            Debug.Log(info.name);
+            Button newItem = Instantiate(lobbyItem, lobbyList.transform);
+            newItem.transform.Find("LobbyName").GetComponent<Text>().text = info.name;
+            newItem.onClick.AddListener(SwapToLobby);
+            newItem.onClick.AddListener(delegate { ConnectToMM(info.networkId);});
+        }
+    }
+
+    void SwapToLobby()
+    {
+        menuMain.SetActive(false);
+        menulobby.SetActive(true);
+        menuclient.SetActive(true);
+        menuhost.SetActive(false);
+    }
+
+    void ConnectToMM(NetworkID id)
+    {
+        matchMaker.JoinMatch(id, "", "", "", 0, 0, OnMatchJoined);
     }
 
     public void OnClickConnect()
@@ -59,6 +113,11 @@ public class MenuConnection : NetworkLobbyManager
     public override void OnLobbyServerPlayersReady()
     {
         startGameButton.interactable = true;
+    }
+
+    public void SetRounds(string r)
+    {
+        rounds = int.Parse(r);
     }
 
     public void CheckReady()
@@ -146,6 +205,9 @@ public class MenuConnection : NetworkLobbyManager
         {
             gamePlayer.transform.position = new Vector3(11, 0);
         }
+
+        spellCasting.rounds = rounds;
+
         return true;
     }
 }

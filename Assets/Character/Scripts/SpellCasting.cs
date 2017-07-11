@@ -50,6 +50,7 @@ public class SpellCasting : NetworkBehaviour {
 
 	public bool isHooking = false;
 
+    [SyncVar]
 	public bool isDead = false;
 
 	public Texture castBar;
@@ -89,6 +90,9 @@ public class SpellCasting : NetworkBehaviour {
 
 
 	public GoogleAnalyticsV3 analytics;
+
+    [SyncVar]
+    public int rounds;
     
 
     public void Reset()
@@ -113,11 +117,6 @@ public class SpellCasting : NetworkBehaviour {
 		GlobalConstants.isFrozen = false;
 	}
 
-	void NewTeam()
-	{
-		GetComponent<NetworkView>().RPC ("UpdateTeam", RPCMode.OthersBuffered, team);
-	}
-
 	void SetTeam(int newTeam)
 	{
 		Invoke ("NewTeam", 1);
@@ -131,7 +130,8 @@ public class SpellCasting : NetworkBehaviour {
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
         if (team == 1)
         {
             transform.Find("FireGraphics").gameObject.SetActive(true);
@@ -218,6 +218,13 @@ public class SpellCasting : NetworkBehaviour {
 			cooldownHandler.SendMessage ("SetSpell5MaxCD", mob.spellMaxCd);
 			//Invoke ("ActivateUpgrading", 1);
 		}
+
+        if(isServer)
+        {
+            Debug.Log(rounds);
+            GameHandler handler = GameObject.Find("GameHandler").GetComponent<GameHandler>();
+            
+        }
 	}
 
 	void ActivateUpgrading()
@@ -230,8 +237,8 @@ public class SpellCasting : NetworkBehaviour {
 		//Debug.Log (analytics);
 	}
 	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
 		if(isLocalPlayer)
 		{
             UpdateSpell(def);
@@ -430,11 +437,13 @@ public class SpellCasting : NetworkBehaviour {
 		}
 	}
 
-	void Dead()
+    [ClientRpc]
+	public void RpcDead()
 	{
 		isDead = true;
 		StopCasting();
-	}
+        myName.GetComponent<TextMesh>().text = "";
+    }
 
 	void Spawned()
 	{

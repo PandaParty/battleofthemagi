@@ -83,6 +83,8 @@ public class Shield : NetworkBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+        if (!isServer)
+            return;
 		transform.position = owner.transform.position;
 	}
 

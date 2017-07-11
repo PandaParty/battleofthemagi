@@ -37,8 +37,8 @@ public class Movement : NetworkBehaviour {
 
 	}
 	#endregion
-	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
 		oldSpeed = speed;
 	}
 
@@ -85,9 +85,9 @@ public class Movement : NetworkBehaviour {
 		}
 		transform.position = spawnPos;
 	}
-
-	// Update is called once per frame
-	void Update () {
+    
+	void Update ()
+    {
         if (!isLocalPlayer)
             return;
 
@@ -130,33 +130,6 @@ public class Movement : NetworkBehaviour {
         transform.position += velocity;
         transform.position = new Vector3(transform.position.x, transform.position.y, 0);
     }
-
-	//void LimitScreen()
-	//{
-	//	//Horizontal screen limits
-	//	if(transform.position.x < -GlobalConstants.screenSize.x)
-	//	{
-	//		float offset = transform.position.x + GlobalConstants.screenSize.x;
-	//		transform.position += new Vector3(-offset, 0, 0);
-	//	}
-	//	else if(transform.position.x > GlobalConstants.screenSize.x)
-	//	{
-	//		float offset = transform.position.x - GlobalConstants.screenSize.x;
-	//		transform.position += new Vector3(-offset, 0, 0);
-	//	}
-
-	//	//Vertical screen limits
-	//	if(transform.position.y < -GlobalConstants.screenSize.y)
-	//	{
-	//		float offset = transform.position.y + GlobalConstants.screenSize.y;
-	//		transform.position += new Vector3(0, -offset, 0);
-	//	}
-	//	else if(transform.position.y > GlobalConstants.screenSize.y)
-	//	{
-	//		float offset = transform.position.y - GlobalConstants.screenSize.y;
-	//		transform.position += new Vector3(0, -offset, 0);
-	//	}
-	//}
 
 	void RemoveBound()
 	{

@@ -142,7 +142,6 @@ public class WindWalkShield : NetworkBehaviour
         
         gameObject.GetComponent<Collider2D>().enabled = false;
         owner.GetComponent<Movement>().RpcSpeedBoost(1.75f, invisDuration);
-        owner.GetComponent<DamageSystem>().DmgInvis();
         RpcInvis();
     }
 
@@ -168,6 +167,7 @@ public class WindWalkShield : NetworkBehaviour
     void RpcInvis()
     {
         AudioSource.PlayClipAtPoint(hit, transform.position);
+        Invoke("EndInvis", invisDuration);
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         string ownerName = spell.owner;
         foreach (GameObject player in players)
@@ -180,6 +180,8 @@ public class WindWalkShield : NetworkBehaviour
             }
         }
 
+        owner.GetComponent<DamageSystem>().DmgInvis();
+
         Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
 
         foreach (Renderer renderer in renderers)
@@ -187,7 +189,6 @@ public class WindWalkShield : NetworkBehaviour
             renderer.enabled = false;
         }
 
-        Invoke("EndInvis", invisDuration);
         
         if (owner.GetComponent<NetworkIdentity>().isLocalPlayer)
         {
