@@ -67,6 +67,8 @@ public class SpellCasting : NetworkBehaviour {
 	GameObject myName;
 
 	float channelTime;
+
+    [SyncVar]
 	bool isChanneling;
 	GameObject currentPowerUp;
 
@@ -237,14 +239,22 @@ public class SpellCasting : NetworkBehaviour {
                     }
                 }
 
-                //if (isChanneling && !isShielding)
-                //{
-                //    channelTime -= Time.deltaTime;
-                //    if (channelTime <= 0)
-                //    {
-                //        FinishChannelingPowerUp();
-                //    }
-                //}
+                if (isChanneling)
+                {
+                    if(isShielding)
+                    {
+                        EndChannelingPowerUp();
+                        return;
+                    }
+                    else
+                    {
+                        channelTime -= Time.deltaTime;
+                        if (channelTime <= 0)
+                        {
+                            FinishChannelingPowerUp();
+                        }
+                    }
+                }
 
                 //if (Input.GetKeyDown(KeyCode.Y))
                 //{
@@ -292,6 +302,8 @@ public class SpellCasting : NetworkBehaviour {
 
 	public void StartChannelingPowerUp(GameObject powerUp, float duration)
 	{
+        if (isChanneling || isCasting)
+            return;
 		channelTime = duration;
 		isChanneling = true;
 		currentPowerUp = powerUp;
@@ -312,8 +324,11 @@ public class SpellCasting : NetworkBehaviour {
 		currentPowerUp = null;
 	}
 
-	public void DamageBoost(float boost, float duration)
+    [ClientRpc]
+	public void RpcDamageBoost(float boost, float duration)
 	{
+        if (!isLocalPlayer)
+            return;
 		dmgBoost *= boost;
 		Invoke ("EndDmgBoost", duration);
 	}

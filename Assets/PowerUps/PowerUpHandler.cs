@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class PowerUpHandler : MonoBehaviour {
+public class PowerUpHandler : NetworkBehaviour
+{
 	public GameObject damageBoost;
 	public GameObject speedBoost;
 
@@ -11,25 +13,52 @@ public class PowerUpHandler : MonoBehaviour {
 
 
 	// Use this for initialization
-	void Start () {
-		if(Network.isServer)
-		{
+	void Start ()
+    {
+        if(isServer)
+        {
 			Invoke ("SpawnPowerUp", 20);
 			isSpawning = true;
 		}
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		if(Network.isServer)
-		{
-			if(currentPowerUp == null && !isSpawning && GameHandler.state == GameHandler.State.Game)
-			{
-				Invoke ("SpawnPowerUp", 30);
-				isSpawning = true;
-			}
+	void Update ()
+    {
+        if(isServer)
+        {
+            if(GameHandler.state == GameHandler.State.Game)
+            {
+                if (currentPowerUp == null && !isSpawning)
+                {
+                    StartSpawn();
+                }
+            }
+            else
+            {
+                if(currentPowerUp != null)
+                {
+                    Destroy(currentPowerUp);
+                }
+                else if(isSpawning)
+                {
+                    CancelSpawn();
+                }
+            }
 		}
 	}
+
+    public void CancelSpawn()
+    {
+        CancelInvoke("SpawnPowerUp");
+        isSpawning = false;
+    }
+
+    public void StartSpawn()
+    {
+        Invoke("SpawnPowerUp", 30);
+        isSpawning = true;
+    }
 
 	void SpawnPowerUp()
 	{
@@ -37,10 +66,13 @@ public class PowerUpHandler : MonoBehaviour {
 		switch(randomNr)
 		{
 			case 1:
-				currentPowerUp = (GameObject)Network.Instantiate(damageBoost, transform.position, Quaternion.identity, 0);
-			break;
+				currentPowerUp = Instantiate(damageBoost, transform.position, Quaternion.identity);
+                NetworkServer.Spawn(currentPowerUp);
+
+            break;
 			case 2:
-				currentPowerUp = (GameObject)Network.Instantiate(speedBoost, transform.position, Quaternion.identity, 0);
+				currentPowerUp = Instantiate(speedBoost, transform.position, Quaternion.identity);
+                NetworkServer.Spawn(currentPowerUp);
 			break;
 		}
 		isSpawning = false;

@@ -31,8 +31,8 @@ public class GameHandler : NetworkBehaviour
 	public bool isUpgrading;
     
 	float timeCounter = 0;
-    
-	void Start ()
+
+    void Start ()
     {
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 1;
