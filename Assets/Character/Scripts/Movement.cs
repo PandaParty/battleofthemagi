@@ -69,18 +69,18 @@ public class Movement : NetworkBehaviour {
 		Invoke ("RemoveBound", duration);
 	}
     
-    public void Reset()
+    [ClientRpc]
+    public void RpcReset()
 	{
+        if (!isLocalPlayer)
+            return;
+
 		Vector3 spawnPos = Vector3.zero;
 		switch(spellCasting.team)
 		{
-		case 1: spawnPos = new Vector3(-9, 0, 0);
+		case 1: spawnPos = new Vector3(-11, 0, 0);
 			break;
-		case 2: spawnPos = new Vector3(9, 0, 0);
-			break;
-		case 3: spawnPos = new Vector3(0, -9, 0);
-			break;
-		case 4: spawnPos = new Vector3(0, 9, 0);
+		case 2: spawnPos = new Vector3(11, 0, 0);
 			break;
 		}
 		transform.position = spawnPos;
@@ -130,7 +130,7 @@ public class Movement : NetworkBehaviour {
         transform.position += velocity;
         transform.position = new Vector3(transform.position.x, transform.position.y, 0);
     }
-
+    
 	void RemoveBound()
 	{
 		bound = Vector3.zero;

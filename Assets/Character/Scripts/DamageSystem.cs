@@ -59,21 +59,22 @@ public class DamageSystem : NetworkBehaviour {
 		return spellCasting.team;
 	}
 	
-	[RPC]
-	public void StartReset()
-	{
-		Reset ();
-		spellCasting.Reset();
-		movement.Reset();
+    [Command]
+	public void CmdFullReset()
+    {
+        health = maxHealth;
+
+        damageTaken = 0;
+        damageHealed = 0;
+        RpcReset ();
+		spellCasting.RpcReset();
+		movement.RpcReset();
 	}
 	
-	void Reset()
+    [ClientRpc]
+	void RpcReset()
 	{
 		Debug.Log ("Resetting");
-		health = maxHealth;
-
-		damageTaken = 0;
-		damageHealed = 0;
 		
 		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
 		
@@ -91,11 +92,12 @@ public class DamageSystem : NetworkBehaviour {
 			renderer.enabled = true;
 		}
 
-		PreRespawn();
+		Invoke("Respawn", 3);
 	}
 	
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
 		maxHealth = health;
 	}
 	
@@ -249,19 +251,7 @@ public class DamageSystem : NetworkBehaviour {
 			}
 		}
 	}
-	
-	[RPC]
-	void LavaAmplify(float damageIncrease, float duration)
-	{
-		lavaAmp = 1 + damageIncrease;
-		Invoke("EndLavaAmplify", duration);
-	}
-	
-	void EndLavaAmplify()
-	{
-		lavaAmp = 1;
-	}
-	
+    
 	public void Amplify(float damageIncrease, float duration)
 	{
 		amp = 1 + damageIncrease;
@@ -355,8 +345,6 @@ public class DamageSystem : NetworkBehaviour {
 		invulnerable = false;
 	}
 	
-	
-	
 	public void Damage(float damage, float knockFactor, Vector3 position, string damagedBy)
 	{
 		if(!invulnerable && GameHandler.state == GameHandler.State.Game)
@@ -438,11 +426,13 @@ public class DamageSystem : NetworkBehaviour {
                     lives--;
                     spellCasting.RpcDead();
                     dotList.Clear();
+                    hotList.Clear();
                     damageTaken = 0;
                     damageHealed = 0;
                     invulnerable = true;
                     RpcHide();
                     AudioSource.PlayClipAtPoint(dead, transform.position);
+                    GameObject.Find("GameHandler").GetComponent<GameHandler>().PlayerDead(Team());
                     //if(lives > 0)
                     //{
                     //	Invoke ("SelfRespawn", 5);
@@ -486,51 +476,15 @@ public class DamageSystem : NetworkBehaviour {
 		}
 	}
 	
-	void SelfRespawn()
-	{
-		transform.position = Vector3.zero;
-		GetComponent<NetworkView>().RPC ("PreRespawn", RPCMode.AllBuffered);
-	}
-	
-	[RPC]
-	public void PreRespawn()
-	{
-		Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = true;
-		}
-		
-		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
-		
-		foreach(SpriteRenderer renderer in sRenderers)
-		{
-			renderer.color = new Color(1, 1, 1, 0.5f);
-		}
-		
-		health = maxHealth;
-		
-		Invoke ("Respawn", 3);
-	}
-	
 	public void Respawn()
 	{
 		isDead = false;
 		invulnerable = false;
-		spellCasting.SendMessage ("Spawned");
+        spellCasting.Spawned();
 		Debug.Log ("Respawned!");
 		GetComponent<Collider2D>().enabled = true;
 		
-		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
-		
-		foreach(SpriteRenderer renderer in sRenderers)
-		{
-			renderer.color = new Color(1, 1, 1, 1);
-		}
-		
 		spellCasting.EndChannelingPowerUp();
-		
 	}
 	
 	[ClientRpc]

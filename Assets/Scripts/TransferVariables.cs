@@ -2,11 +2,14 @@
 using System.Collections;
 
 public class TransferVariables : MonoBehaviour {
-	public bool isHost = false;
-	public string connectIp = "";
-	public int team;
-	public int rounds;
-	void Start(){
+	public int rounds = 3;
+	void Start()
+    {
 		DontDestroyOnLoad(gameObject);
 	}
+
+    public void SetRounds(string input)
+    {
+        rounds = int.Parse(input);
+    }
 }

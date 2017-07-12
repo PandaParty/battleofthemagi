@@ -91,31 +91,20 @@ public class SpellCasting : NetworkBehaviour {
 
 	public GoogleAnalyticsV3 analytics;
 
-    [SyncVar]
-    public int rounds;
-    
-
-    public void Reset()
+    [ClientRpc]
+    public void RpcReset()
 	{
 		damageDone = 0;
 		GlobalConstants.isFrozen = true;
-		if(Network.isServer)
-		{
-			Invoke ("Unfreeze", 5.0f);
-		}
-		//Silence(6);
+        //Silence(6);
+        myName.GetComponent<TextMesh>().text = playerName;
+        Invoke ("Unfreeze", 5.0f);
 	}
     
 	void Unfreeze()
 	{
-		GetComponent<NetworkView>().RPC ("UnfreezeAll", RPCMode.All);
-	}
-	
-	[RPC]
-	void UnfreezeAll()
-	{
-		GlobalConstants.isFrozen = false;
-	}
+        GlobalConstants.isFrozen = false;
+    }
 
 	void SetTeam(int newTeam)
 	{
@@ -141,7 +130,7 @@ public class SpellCasting : NetworkBehaviour {
             transform.Find("IceGraphics").gameObject.SetActive(true);
         }
         cooldownHandler = GameObject.Find ("CooldownInfo");
-		spells.Add (blink);
+        spells.Add (blink);
 		spells.Add (fireball);
 		spells.Add (shield);
 		spells.Add (magmaBlast);
@@ -162,7 +151,6 @@ public class SpellCasting : NetworkBehaviour {
             CameraScript camScript = camera.GetComponent<CameraScript>();
             camScript.PlayerObject = gameObject;
             //GetComponent<NetworkView>().RPC ("UpdateName", RPCMode.AllBuffered, playerName);
-
             
 
             //spells.Add(blink);
@@ -216,26 +204,17 @@ public class SpellCasting : NetworkBehaviour {
 			cooldownHandler.SendMessage ("SetSpell3MaxCD", off3.spellMaxCd);
 			cooldownHandler.SendMessage ("SetSpell4MaxCD", def.spellMaxCd);
 			cooldownHandler.SendMessage ("SetSpell5MaxCD", mob.spellMaxCd);
-			//Invoke ("ActivateUpgrading", 1);
+			Invoke ("ActivateUpgrading", 1);
 		}
-
-        if(isServer)
-        {
-            Debug.Log(rounds);
-            GameHandler handler = GameObject.Find("GameHandler").GetComponent<GameHandler>();
-            
-        }
 	}
 
 	void ActivateUpgrading()
 	{
-		GameObject.Find("GameHandler").GetComponent<Upgrading>().spellCasting = this;
-		GameObject.Find("GameHandler").GetComponent<Upgrading>().SetSpellCasting();
-		//analytics = GameObject.Find ("GAv3").GetComponent<GoogleAnalyticsV3>();
-		//analytics.StartSession();
-		//analytics.LogScreen("Game");
-		//Debug.Log (analytics);
-	}
+        GameObject handler = GameObject.Find("GameHandler");
+        handler.GetComponent<Upgrading>().spellCasting = this;
+        handler.GetComponent<Upgrading>().SetSpellCasting();
+        handler.GetComponent<GameHandler>().CmdNewPlayer(team);
+    }
 	
 	void Update ()
     {
@@ -445,7 +424,7 @@ public class SpellCasting : NetworkBehaviour {
         myName.GetComponent<TextMesh>().text = "";
     }
 
-	void Spawned()
+	public void Spawned()
 	{
 		isDead = false;
 	}

@@ -26,8 +26,6 @@ public class MenuConnection : NetworkLobbyManager
     public GameObject menuclient;
     public GameObject menuhost;
 
-    public int rounds = 3;
-
     public void Awake()
     {
         matchMaker = gameObject.AddComponent<NetworkMatch>();
@@ -115,11 +113,6 @@ public class MenuConnection : NetworkLobbyManager
         startGameButton.interactable = true;
     }
 
-    public void SetRounds(string r)
-    {
-        rounds = int.Parse(r);
-    }
-
     public void CheckReady()
     {
         bool allready = true;
@@ -205,8 +198,6 @@ public class MenuConnection : NetworkLobbyManager
         {
             gamePlayer.transform.position = new Vector3(11, 0);
         }
-
-        spellCasting.rounds = rounds;
 
         return true;
     }
