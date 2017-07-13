@@ -2,7 +2,8 @@
 using System.Collections;
 using UnityEngine.Networking;
 
-public class LifeGrip : NetworkBehaviour {
+public class LifeGrip : NetworkBehaviour
+{
 	public LineRenderer lineRenderer;
 	public Spell spell;
 	public float speed = 50;
@@ -16,8 +17,7 @@ public class LifeGrip : NetworkBehaviour {
 	bool hasHooked;
 
 	public GameObject absorbShield;
-
-	// Use this for initialization
+    
 	void Start ()
     {
         AudioSource.PlayClipAtPoint(cast, transform.position);
@@ -44,6 +44,9 @@ public class LifeGrip : NetworkBehaviour {
 		
 		Invoke ("TimeOut", 1.5f);
 
+        if (spell.upgrades.lifeGripShield > 0)
+            ActivateAbsorb();
+
 		//if(GetComponent<NetworkView>().isMine)
 		//{
 		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
@@ -54,8 +57,7 @@ public class LifeGrip : NetworkBehaviour {
 		//	}
 		//}
 	}
-
-	[RPC]
+    
 	void ActivateAbsorb()
 	{
 		absorb = true;
@@ -69,7 +71,8 @@ public class LifeGrip : NetworkBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
         if (!isServer)
             return;
 
@@ -144,25 +147,5 @@ public class LifeGrip : NetworkBehaviour {
     {
         lineRenderer.SetPosition(index, pos);
     }
-
-    [RPC]
-	void SyncHooked(string playerName)
-	{
-		Debug.Log ("Syncing hook! " + playerName);
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		foreach(GameObject player in players)
-		{
-			string otherName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			Debug.Log ("Player name is: " + otherName);
-			if(otherName == playerName)
-			{
-				Debug.Log ("Set hooked to: " + otherName);
-				hookedObject = player;
-				Debug.Log(hookedObject);
-				return;
-			}
-		}
-	}
-	
 }
 

@@ -29,54 +29,32 @@ public class BindingShot : NetworkBehaviour
 		spell.Invoke ("KillSelf", 5);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.bindingDuration.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDur", RPCMode.All, upgrading.bindingDuration.currentLevel);
-				
-		//		if(upgrading.bindingSilence.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateSilence", RPCMode.All);
-		//		}
-		//	}
-		//	if(upgrading.bindingLength.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("DecreaseLength", RPCMode.All, upgrading.bindingLength.currentLevel);
-				
-		//		if(upgrading.bindingAmplify.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateAmplify", RPCMode.All);
-		//		}
-		//	}
-		//}
+        IncreaseDur(spell.upgrades.bindingDuration);
+        if(spell.upgrades.bindingAmplify > 0)
+        {
+            ActivateAmplify();
+        }
+        else if(spell.upgrades.bindingSilence > 0)
+        {
+            ActivateSilence();
+        }
 	}
-
-	// Update is called once per frame
-	void Update () {
+    
+	void Update ()
+    {
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 	}
-
-	[RPC]
+    
 	void IncreaseDur(int level)
 	{
 		duration += 0.5f * level;
 	}
-
-	[RPC]
-	void DecreaseLength(int level)
-	{
-		length *= 1 - 0.25f * level;
-	}
-
-	[RPC]
+    
 	void ActivateSilence()
 	{
 		silences = true;
 	}
-
-	[RPC]
+    
 	void ActivateAmplify()
 	{
 		amplifies = true;

@@ -32,9 +32,9 @@ public class FrostPrison : NetworkBehaviour {
 	float totalDamage = 0;
 
 	bool circleWall = false;
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		SetColor();
 		spell.aimDir = Vector3.Normalize(new Vector3(spell.aimPoint.x, spell.aimPoint.y) - transform.position);
 
@@ -47,39 +47,16 @@ public class FrostPrison : NetworkBehaviour {
 		Invoke ("Spawn", formTime);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.frostPrisonHealth.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("UpgradeHealth", RPCMode.AllBuffered);
-		//		Debug.Log ("Upgrading health");
-				
-		//		if(upgrading.frostPrisonReflect.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateReflect", RPCMode.AllBuffered);
-		//		}
-		//	}
+        if (!isServer)
+            return;
 
-		//	if(upgrading.frostPrisonDuration.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.AllBuffered, upgrading.frostPrisonDuration.currentLevel);
+        IncreaseDuration(spell.upgrades.frostPrisonDuration);
+        if (spell.upgrades.frostPrisonCircleWall > 0)
+            CircleWall();
 
-		//		if(upgrading.frostPrisonCircleWall.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("CircleWall", RPCMode.AllBuffered);
-		//		}
-		//	}
-
-		//	if(upgrading.frostPrisonRamp.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.frostPrisonRamp.currentLevel);
-		//		if(upgrading.frostPrisonStorm.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateStorm", RPCMode.AllBuffered);
-		//		}
-		//	}
-		//}
+        IncreaseDmg(spell.upgrades.frostPrisonRamp);
+        if (spell.upgrades.frostPrisonStorm > 0)
+            ActivateStorm();
 	}
 
 	void SetColor()
@@ -103,25 +80,12 @@ public class FrostPrison : NetworkBehaviour {
 			break;
 		}
 	}
-	
-	[RPC]
-	void UpgradeHealth()
-	{
-		PrisonWall[] walls = GetComponentsInChildren<PrisonWall>();
 
-		foreach(PrisonWall wall in walls)
-		{
-			wall.health = 100;
-		}
-	}
-
-	[RPC]
 	void IncreaseDuration(int level)
 	{
 		duration += 0.5f * level;
 	}
-
-	[RPC]
+    
 	void CircleWall()
 	{
 		formTime = 0.7f;
@@ -130,28 +94,12 @@ public class FrostPrison : NetworkBehaviour {
 		circleWall = true;
 		extraSpawn.SetActive (true);
 	}
-
-	[RPC]
-	void ActivateReflect()
-	{
-		reflects = true;
-
-		PrisonWall[] walls = GetComponentsInChildren<PrisonWall>();
-		foreach(PrisonWall wall in walls)
-		{
-			wall.reflect = true;
-			wall.team = spell.team;
-		}
-	}
 	
-	
-	[RPC]
 	void IncreaseDmg(int level)
 	{
 		spell.damage += 0.035f * level;
 	}
-
-	[RPC]
+    
 	void ActivateStorm()
 	{
 		spell.damage += 0.04f;
@@ -160,7 +108,8 @@ public class FrostPrison : NetworkBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
 		if(formed)
 		{
 			currentTime += Time.deltaTime;

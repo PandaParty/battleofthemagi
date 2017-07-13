@@ -16,9 +16,9 @@ public class Fireball : NetworkBehaviour
 	public float duration;
 
 	bool finalBlast;
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		oldSpeed = speed;
 		spell.SetColor();
 		Vector2 aimPos = ((Spell)gameObject.GetComponent("Spell")).aimPoint;
@@ -27,52 +27,36 @@ public class Fireball : NetworkBehaviour
 		spell.Invoke ("KillSelf", 5);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-		//if(isLocalPlayer)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.fireballDot.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDot", RPCMode.All, upgrading.fireballDot.currentLevel);
-				
-		//		if(upgrading.fireballFinalBlast.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateFinalBlast", RPCMode.All);
-		//		}
-		//	}
-
-		//	if(upgrading.fireballDmg.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.fireballDmg.currentLevel);
-		//	}
-		//}
-	}
+        IncreaseDot(spell.upgrades.fireballDot);
+        if(spell.upgrades.fireballFinalBlast > 0)
+        {
+            ActivateFinalBlast();
+        }
+        IncreaseDmg(spell.upgrades.fireballDmg);
+    }
 	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 	}
-
-	[RPC]
+    
 	void IncreaseDot(int level)
 	{
 		dotDamage += 0.05f * level;
 		duration += 0.5f * level;
+        Debug.Log("Dot increased");
 	}
-
-	[RPC]
+    
 	void ActivateFinalBlast()
 	{
 		finalBlast = true;
 	}
-
-	
-	[RPC]
+    
 	void IncreaseDmg(int level)
 	{
 		spell.damage += 0.6f * level;
 		spell.knockFactor += 0.45f * level;
 	}
-
 
 	void OnTriggerEnter2D(Collider2D other)
 	{

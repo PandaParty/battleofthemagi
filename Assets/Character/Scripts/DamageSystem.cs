@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine.Networking;
 
 [NetworkSettings(sendInterval = 0)]
-public class DamageSystem : NetworkBehaviour {
+public class DamageSystem : NetworkBehaviour
+{
 	public SpellCasting spellCasting;
 	public Movement movement;
     [SyncVar]
@@ -182,7 +183,7 @@ public class DamageSystem : NetworkBehaviour {
 			
 			if(inLava)
 			{
-				Damage (0.12f * lavaAmp * Time.deltaTime * 60, 0, Vector3.zero, "world");
+				Damage (5.12f * lavaAmp * Time.deltaTime * 60, 0, Vector3.zero, "world");
 			}
 			
 			
@@ -292,6 +293,14 @@ public class DamageSystem : NetworkBehaviour {
 			Debug.Log ("Heres a dot!");
 			dot.effect.SetActive(false);
 		}
+        GameObject[] powerupEffects = GameObject.FindGameObjectsWithTag("PowerUpEffect");
+        foreach(GameObject p in powerupEffects)
+        {
+            if(p.GetComponent<FollowPlayer>().player == gameObject)
+            {
+                p.GetComponent<ParticleSystem>().Stop(false, ParticleSystemStopBehavior.StopEmitting);
+            }
+        }
 	}
 
 	public void EndInvis()
@@ -308,7 +317,15 @@ public class DamageSystem : NetworkBehaviour {
 		{
 			dot.effect.SetActive(true);
 		}
-	}
+        GameObject[] powerupEffects = GameObject.FindGameObjectsWithTag("PowerUpEffect");
+        foreach (GameObject p in powerupEffects)
+        {
+            if (p.GetComponent<FollowPlayer>().player == gameObject)
+            {
+                p.GetComponent<ParticleSystem>().Play();
+            }
+        }
+    }
 	
 	void SetHook(GameObject _hook)
 	{
@@ -480,8 +497,12 @@ public class DamageSystem : NetworkBehaviour {
 	{
 		isDead = false;
 		invulnerable = false;
+        health = maxHealth;
+        dotList.Clear();
+        hotList.Clear();
         spellCasting.Spawned();
 		Debug.Log ("Respawned!");
+        inLava = false;
 		GetComponent<Collider2D>().enabled = true;
 		
 		spellCasting.EndChannelingPowerUp();

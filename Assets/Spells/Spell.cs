@@ -18,6 +18,8 @@ public class Spell : NetworkBehaviour {
     public Vector2 aimPoint;
 	public bool destroysSpells;
 	public Vector2 aimDir;
+
+    public Upgrades upgrades;
 	
 	void Start()
 	{

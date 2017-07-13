@@ -2,7 +2,8 @@
 using System.Collections;
 using UnityEngine.Networking;
 
-public class Hook : NetworkBehaviour {
+public class Hook : NetworkBehaviour
+{
 	public LineRenderer lineRenderer;
 	public Spell spell;
 	public float speed = 50;
@@ -15,8 +16,7 @@ public class Hook : NetworkBehaviour {
 	bool hasHooked = false;
 	bool pulling = false;
 	bool invulnerability = false;
-
-	// Use this for initialization
+    
 	void Start ()
     {
         AudioSource.PlayClipAtPoint(cast, transform.position);
@@ -42,39 +42,24 @@ public class Hook : NetworkBehaviour {
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * 2 * Time.deltaTime * 60;
 		Invoke ("TimeOut", 1f);
 
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.hookDmg.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.hookDmg.currentLevel);
-				
-		//		if(upgrading.hookPull.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivatePull", RPCMode.All);
-		//		}
-		//	}
+        IncreaseDmg(spell.upgrades.hookDmg);
+        if (spell.upgrades.hookPull > 0)
+            ActivatePull();
 
-		//	if(upgrading.hookInvu.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("ActivateInvu", RPCMode.All);
-		//	}
-		//}
+        if (spell.upgrades.hookInvu > 0)
+            ActivateInvu();
 	}
-
-	[RPC]
+    
 	void IncreaseDmg(int level)
 	{
 		spell.damage += 1.5f * level;
 	}
-
-	[RPC]
+    
 	void ActivatePull()
 	{
 		pulling = true;
 	}
-
-	[RPC]
+    
 	void ActivateInvu()
 	{
 		invulnerability = true;
@@ -87,8 +72,8 @@ public class Hook : NetworkBehaviour {
 		Destroy (gameObject);
 	}
 	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
         if (!isServer)
             return;
 
@@ -188,25 +173,5 @@ public class Hook : NetworkBehaviour {
 			}
 		}
 	}
-	
-	[RPC]
-	void SyncHooked(string playerName)
-	{
-		Debug.Log ("Syncing hook! " + playerName);
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		foreach(GameObject player in players)
-		{
-			string otherName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			Debug.Log ("Player name is: " + otherName);
-			if(otherName == playerName)
-			{
-				Debug.Log ("Set hooked to: " + otherName);
-				hookedObject = player;
-				Debug.Log(hookedObject);
-				return;
-			}
-		}
-	}
-	
 }
 

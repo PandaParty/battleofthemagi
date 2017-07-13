@@ -78,7 +78,7 @@ public class SpellCasting : NetworkBehaviour {
 
 	public AudioClip troll1;
 	public AudioClip troll2;
-
+    
 	public int gold;
 
 	public bool isSilenced = false;
@@ -120,7 +120,6 @@ public class SpellCasting : NetworkBehaviour {
 		damageDone += amount;
 	}
 
-	// Use this for initialization
 	void Start ()
     {
         if (team == 1)
@@ -206,6 +205,8 @@ public class SpellCasting : NetworkBehaviour {
 			cooldownHandler.SendMessage ("SetSpell3MaxCD", off3.spellMaxCd);
 			cooldownHandler.SendMessage ("SetSpell4MaxCD", def.spellMaxCd);
 			cooldownHandler.SendMessage ("SetSpell5MaxCD", mob.spellMaxCd);
+            isSilenced = true;
+            GlobalConstants.isFrozen = true;
 			Invoke ("ActivateUpgrading", 1);
 		}
 	}
@@ -215,7 +216,7 @@ public class SpellCasting : NetworkBehaviour {
         GameObject handler = GameObject.Find("GameHandler");
         handler.GetComponent<Upgrading>().spellCasting = this;
         handler.GetComponent<Upgrading>().SetSpellCasting();
-        handler.GetComponent<GameHandler>().CmdNewPlayer(team);
+        //handler.GetComponent<GameHandler>().CmdNewPlayer(team);
     }
 	
 	void Update ()
@@ -227,7 +228,6 @@ public class SpellCasting : NetworkBehaviour {
             UpdateSpell(off1);
             UpdateSpell(off2);
             UpdateSpell(off3);
-
             if (!isDead && !GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
             {
                 if (isCasting)
@@ -372,7 +372,8 @@ public class SpellCasting : NetworkBehaviour {
 	public void StopCasting()
 	{
 		isCasting = false;
-		currentCast.castTime = currentCast.totalCastTime;
+        if(currentCast != null)
+		    currentCast.castTime = currentCast.totalCastTime;
 	}
 
 	void OnGUI()
@@ -426,6 +427,7 @@ public class SpellCasting : NetworkBehaviour {
 				spellScript.team = spellTeam;
 				spellScript.damage *= damageBoost;
 				spellScript.aimPoint = new Vector2(aimPointX, aimPointY);
+                spellScript.upgrades = GetComponent<Upgrades>();
                 NetworkServer.Spawn(newSpell);
 			}
 		}

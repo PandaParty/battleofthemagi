@@ -10,6 +10,9 @@ public class GameHandler : NetworkBehaviour
     [SyncVar]
     public int team2Left;
 
+    private int team1Count;
+    private int team2Count;
+
 	public int team1Score;
 	public int team2Score;
     public Text team1ScoreText;
@@ -43,7 +46,32 @@ public class GameHandler : NetworkBehaviour
 		TransferVariables trScript = (TransferVariables)GameObject.Find ("TransferVariables").GetComponent("TransferVariables");
 		maxRounds = trScript.rounds;
         Debug.Log(maxRounds);
+        Invoke("DelayedRpcSwapToGame", 2);
+        Invoke("AddPlayers", 5);
 	}
+
+    void AddPlayers()
+    {
+        team1Count = 0;
+        team2Count = 0;
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject p in players)
+        {
+            Debug.Log("Found a player for team: " + p.GetComponent<SpellCasting>().team);
+            switch(p.GetComponent<SpellCasting>().team)
+            {
+                case 1:
+                    team1Count++;
+                    break;
+                case 2:
+                    team2Count++;
+                    break;
+            }
+        }
+        team1Left = team1Count;
+        team2Left = team2Count;
+        Debug.Log("Team 1 left: " + team1Left);
+    }
 	
 	void Update () 
 	{
@@ -92,26 +120,25 @@ public class GameHandler : NetworkBehaviour
 	public void PlayerDead(int team)
 	{
 		Debug.Log ("player died in team: " + team);
+        bool roundOver = false;
         switch (team)
         {
             case 1:
                 team1Left--;
+                if (team1Left <= 0)
+                {
+                    team2Score++;
+                    roundOver = true;
+                }
                 break;
-
             case 2:
                 team2Left--;
+                if (team2Left <= 0)
+                {
+                    team1Score++;
+                    roundOver = true;
+                }
                 break;
-        }
-        bool roundOver = false;
-        if (team2Left <= 0)
-        {
-            team1Score++;
-            roundOver = true;
-        }
-        else if (team1Left <= 0)
-        {
-            team2Score++;
-            roundOver = true;
         }
 
         if (roundOver)
@@ -147,6 +174,7 @@ public class GameHandler : NetworkBehaviour
 			team2Left = 0;
 			Debug.Log ("Sending rpc call to upgrade");
             //GetComponent<NetworkView>().RPC ("Upgrade", RPCMode.AllBuffered);
+            Invoke("AddPlayers", 10);
             RpcUpgrade();
 			Debug.Log ("RPC call sent");
 		}
@@ -163,11 +191,12 @@ public class GameHandler : NetworkBehaviour
 	[ClientRpc]
 	void RpcUpgrade()
 	{
+        Debug.Log("Rpc call received");
 		currentRound ++;
 		state = State.Upgrade;
 		isUpgrading = true;
-		timeCounter = 60;
-		Invoke ("SwapToGame", 60);
+		timeCounter = 10;
+		Invoke ("SwapToGame", 10);
 	}
 
 	[ClientRpc]
@@ -179,15 +208,28 @@ public class GameHandler : NetworkBehaviour
         team2ScoreText.text = team2Score.ToString();
     }
 
+    void DelayedRpcSwapToGame()
+    {
+        RpcSwapToGame();
+    }
+
+    [ClientRpc]
+    void RpcSwapToGame()
+    {
+        Debug.Log("Client going to swap to game 1");
+        SwapToGame();
+    }
+
 	void SwapToGame()
-	{
-		state = State.Game;
+    {
+        Debug.Log("Client going to swap to game 2");
+        state = State.Game;
 		isUpgrading = false;
+        //CmdNewPlayer(gameObject.GetComponent<Upgrading>().spellCasting.team);
 
         //gameObject.GetComponent<Upgrading>().spellCasting.gameObject.GetComponent<NetworkView>().RPC ("StartReset", RPCMode.AllBuffered);
 
         gameObject.GetComponent<Upgrading>().spellCasting.gameObject.GetComponent<DamageSystem>().CmdFullReset();
-        CmdNewPlayer(gameObject.GetComponent<Upgrading>().spellCasting.team);
 	}
 
 	[RPC]

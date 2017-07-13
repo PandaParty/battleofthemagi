@@ -2,8 +2,8 @@
 using System.Collections;
 using UnityEngine.Networking;
 
-public class Shield : NetworkBehaviour {
-
+public class Shield : NetworkBehaviour
+{
 	public Spell spell;
 	public GameObject owner;
 	public GameObject shieldHit;
@@ -15,7 +15,8 @@ public class Shield : NetworkBehaviour {
 	float absorbAmount;
 
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
         if (!isServer)
@@ -37,44 +38,15 @@ public class Shield : NetworkBehaviour {
 		owner.GetComponent<SpellCasting>().Invoke ("StopShielding", duration);
 		spell.Invoke ("KillSelf", duration);
 
-		
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.shieldAmp.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("ActivateAmplify", RPCMode.All, upgrading.shieldAmp.currentLevel);
-				
-		//		if(upgrading.shieldAim.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateAim", RPCMode.All);
-		//		}
-		//	}
-			
-		//	if(upgrading.shieldCd.currentLevel > 0)
-		//	{
-		//		//networkView.RPC ("DecreaseCd", RPCMode.All, upgrading.shieldCd.currentLevel);
-		//		if(upgrading.shieldAbsorb.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateAbsorb", RPCMode.All, upgrading.shieldAbsorb.currentLevel);
-		//		}
-		//	}
-		//}
-	}
-
-	[RPC]
+        ActivateAmplify(spell.upgrades.shieldAmp);
+        ActivateAbsorb(spell.upgrades.shieldAbsorb);
+    }
+    
 	void ActivateAmplify(int ampLevel)
 	{
 		amplifyAmount = 1 + ampLevel * 0.1f;
 	}
-
-	[RPC]
-	void ActivateAim()
-	{
-		reflectAim = true;
-	}
-
-	[RPC]
+    
 	void ActivateAbsorb(int absLevel)
 	{
 		absorbAmount = 0.5f * absLevel;
@@ -116,13 +88,6 @@ public class Shield : NetworkBehaviour {
 						otherSpell.aimDir = reflected;
 						otherSpell.team = spell.team;
 						otherSpell.damage *= amplifyAmount;
-
-						//if(reflectAim && GetComponent<NetworkView>().isMine)
-						//{
-						//	Vector3 aim = Camera.main.ScreenToWorldPoint (new Vector3((int)Input.mousePosition.x, (int)Input.mousePosition.y, 0));
-						//	reflected = Vector3.Normalize(new Vector3(aim.x, aim.y) - transform.position);
-						//	otherSpell.GetComponent<NetworkView>().RPC ("SetAim", RPCMode.All, reflected.x, reflected.y, spell.team, amplifyAmount, transform.position);
-						//}
 					}
 				}
 			}

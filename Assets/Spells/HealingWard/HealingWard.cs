@@ -17,57 +17,22 @@ public class HealingWard : NetworkBehaviour {
 	bool lifeSteals = false;
 	bool damageReduct = false;
 	bool instant = false;
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		SetColor();
 		transform.position = spell.aimPoint;
 		transform.position += new Vector3(0, 0, 1);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 		Invoke ("Bloom", bloomTime);
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.healingDispel.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("Dispel", RPCMode.All);
-				
-		//		if(upgrading.healingDispelHeal.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("DispelHeal", RPCMode.All);
-		//		}
-		//	}
 
-		//	if(upgrading.healingDuration.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("Duration", RPCMode.All, upgrading.healingDuration.currentLevel);
-				
-		//		if(upgrading.healingDamageReduct.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("DamageReduct", RPCMode.All);
-		//		}
-		//	}
-			
-		//	if(upgrading.healingDmg.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("Damages", RPCMode.All, upgrading.healingDmg.currentLevel);
+        Duration(spell.upgrades.healingDuration);
+        if (spell.upgrades.healingDamageReduct > 0)
+            DamageReduct();
 
-		//		if(upgrading.healingLifesteal.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("Lifesteals", RPCMode.All);
-		//		}
-		//	}
-
-		//	if(upgrading.healingBloom.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("BloomTime", RPCMode.All, upgrading.healingBloom.currentLevel);
-				
-		//		if(upgrading.healingBurst.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("Instant", RPCMode.All);
-		//		}
-		//	}
-		//}
+        BloomTime(spell.upgrades.healingBloom);
+        if (spell.upgrades.healingBurst > 0)
+            Instant();
 	}
 
 	void SetColor()
@@ -87,37 +52,26 @@ public class HealingWard : NetworkBehaviour {
 			break;
 		}
 	}
-
-	[RPC]
+    
 	void Duration(int level)
 	{
 		duration += 0.7f * level;
 	}
-
-	[RPC]
+    
 	void DamageReduct()
 	{
 		damageReduct = true;
 	}
-
-	[RPC]
+    
 	void BloomTime(int level)
 	{
 		bloomTime -= 0.2f * level;
 		gameObject.GetComponent<ParticleSystem>().time = 0.7f - bloomTime;
 	}
-
-	[RPC]
+    
 	void Instant()
 	{
 		instant = true;
-	}
-
-	
-	// Update is called once per frame
-	void Update () 
-	{
-		
 	}
 
 	void Bloom()

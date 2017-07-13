@@ -19,9 +19,9 @@ public class Blink : NetworkBehaviour {
 	ArrayList playersHit = new ArrayList();
 
     private bool stopped = false;
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
         AudioSource.PlayClipAtPoint(cast, transform.position);
         if (!isServer)
             return;
@@ -39,32 +39,25 @@ public class Blink : NetworkBehaviour {
 				break;
 			}
         }
-        //Upgrading upgrading = GameObject.Find("GameHandler").GetComponent<Upgrading>();
-        //if (upgrading.blinkDmg.currentLevel > 0)
-        //{
-        //    GetComponent<NetworkView>().RPC("IncreaseDmg", RPCMode.All, upgrading.blinkDmg.currentLevel);
-
-        //    if (upgrading.blinkThrust.currentLevel > 0)
-        //    {
-        //        thrusting = true;
-        //    }
-        //}
+        IncreaseDmg(spell.upgrades.blinkDmg);
+        if(spell.upgrades.blinkThrust > 0)
+        {
+            thrusting = true;
+        }
         if (!thrusting)
         {
             RpcStartBlink();
-            //GetComponent<NetworkView>().RPC("StartBlink", RPCMode.All);
         }
         spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
 	}
-
-	[RPC]
+    
 	void IncreaseDmg(int level)
 	{
 		spell.damage = 5 + level * 2;
 	}
 	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
 		if(isServer && !stopped)
 		{
             Vector3 velocity = new Vector3(spell.aimDir.x, spell.aimDir.y, 0) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;

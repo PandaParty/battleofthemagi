@@ -4,7 +4,6 @@ using UnityEngine.Networking;
 
 public class WindWalkShield : NetworkBehaviour
 {
-
 	public Spell spell;
 	public GameObject owner;
 	public GameObject shieldHit;
@@ -13,13 +12,11 @@ public class WindWalkShield : NetworkBehaviour
 	public AudioClip hit;
 
 	public float invisDuration;
-
-
+    
 	float damageBoost = 1;
-
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
         if (!isServer)
@@ -38,34 +35,18 @@ public class WindWalkShield : NetworkBehaviour
 				break;
 			}
 		}
+        IncreaseDuration(spell.upgrades.windShieldDuration);
+        if (spell.upgrades.windShieldDamage > 0)
+            ActivateDamage();
 
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.windShieldDuration.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.All, upgrading.windShieldDuration.currentLevel);
-				
-		//		if(upgrading.windShieldDamage.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateDamage", RPCMode.All);
-		//		}
-		//	}
-
-		//	if(upgrading.windShieldInvis.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC("ActivateInvis", RPCMode.All);
-		//	}
-		//}
+        if (spell.upgrades.windShieldInvis > 0)
+            ActivateInvis();
 
 		owner.SendMessage("IsShielding");
 		owner.GetComponent<SpellCasting>().Invoke ("StopShielding", duration);
 		spell.Invoke ("KillSelf", duration);
-        
-        //StartInvis();
     }
 
-	[RPC]
 	void IncreaseDuration(int newDur)
 	{
 		invisDuration += newDur * 0.5f;
@@ -75,36 +56,20 @@ public class WindWalkShield : NetworkBehaviour
 		spell.CancelInvoke("KillSelf");
 		spell.Invoke ("KillSelf", duration);
 	}
-
-	[RPC]
+    
 	void ActivateDamage()
 	{
 		damageBoost = 1.35f;
 	}
-
-	[RPC]
+    
 	void ActivateInvis()
 	{
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		Debug.Log (players.Length);
-		string ownerName = spell.owner;
-		foreach(GameObject player in players)
-		{
-			string playerName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			
-			if(ownerName == playerName)
-			{
-				owner = player;
-				break;
-			}
-		}
-		Invis ();
-		owner.GetComponent<DamageSystem>().Invulnerability(invisDuration);
+        StartInvis();
 		owner.GetComponent<SpellCasting>().StopShielding();
 	}
-
-	// Update is called once per frame
-	void Update () {
+    
+	void Update ()
+    {
         if (!isServer)
             return;
 
@@ -206,15 +171,6 @@ public class WindWalkShield : NetworkBehaviour
         owner.GetComponent<SpellCasting>().Invis();
 
     }
-
-	[RPC]
-	void Invis()
-	{
-		Debug.Log ("Starting invis!");
-		AudioSource.PlayClipAtPoint(hit, transform.position);
-        
-		owner.SendMessage ("Invis");
-	}
 
 	void EndInvis()
 	{

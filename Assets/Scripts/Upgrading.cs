@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEngine.UI;
+using System;
 
 public class Upgrading : MonoBehaviour {
 
@@ -90,16 +92,16 @@ public class Upgrading : MonoBehaviour {
 	string names = "";
 
 	public bool isUpgrading;
-
+    public Text goldText;
 	//public dfLabel goldText;
-
-	// Use this for initialization
-	void SetShit () {
+    
+	void SetShit ()
+    {
 		spellcastSet = 1;
 		#region Fireball
 		fireballDot = new UpgradeInfo("Damage \n over \n Time", 3, 40, null, button);
 		fireballDot.tooltip = "Increases damage per second by 0.1/0.2/0.3, and duration by 0.5/1/1.5";
-		fireballFinalBlast = new UpgradeInfo("Final blast", 1, 80, fireballDot, button);
+		fireballFinalBlast = new UpgradeInfo("Final blast", 1, 120, fireballDot, button);
 		fireballFinalBlast.tooltip = "When the fireball DoT ends, deals a final 5 damage (this can be lethal)";
 
 
@@ -303,7 +305,7 @@ public class Upgrading : MonoBehaviour {
 		lifeGripCd.relative = bindingLength;
 		#endregion
 
-		//Invoke ("SetSpellCasting", 2);
+		Invoke ("SetSpellCasting", 2);
 	}
 
 	void Awake()
@@ -335,18 +337,6 @@ public class Upgrading : MonoBehaviour {
 		spells.Add (spellCasting.def);
 		spells.Add (spellCasting.mob);
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
-	void InvokeMethod(int argument, string name, System.Type type)
-	{
-		MethodInfo method = type.GetMethod(name);
-		object[] parameters = new object[]{(object)argument};
-		method.Invoke(this, parameters);
-	}
 
 	void OnGUI()
 	{
@@ -365,22 +355,21 @@ public class Upgrading : MonoBehaviour {
 
 			gold = spellCasting.gold.ToString();
 
-			GUI.Label(new Rect(30, 10, 100, 20), "Gold: " + gold);
-			//goldText.Text = "Gold:\n" + gold;
-			//if(GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX", button))
-			//{
-			//	//spellCasting.gold += 100;
-			//}
+			goldText.text = "Gold: " + gold;
+            if (GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX"))
+            {
+                spellCasting.gold += 100;
+            }
 
 
-			GUI.DrawTexture(new Rect(80, 45, 1120, 630), background);
+            GUI.DrawTexture(new Rect(80, 45, 1120, 630), background);
 
-			System.Type t = this.GetType();
+            System.Type t = this.GetType();
 			InvokeMethod (1, "Draw" + spellCasting.off1.spellName, t);
-			InvokeMethod (2, "Draw" + spellCasting.off2.spellName, t);
-			InvokeMethod (3, "Draw" + spellCasting.off3.spellName, t);
-			InvokeMethod (4, "Draw" + spellCasting.def.spellName, t);
-			InvokeMethod (5, "Draw" + spellCasting.mob.spellName, t);
+            InvokeMethod (2, "Draw" + spellCasting.off2.spellName, t);
+            InvokeMethod (3, "Draw" + spellCasting.off3.spellName, t);
+            InvokeMethod (4, "Draw" + spellCasting.def.spellName, t);
+            InvokeMethod (5, "Draw" + spellCasting.mob.spellName, t);
 
 			if(GUI.tooltip.Length != 0)
 			{
@@ -388,13 +377,24 @@ public class Upgrading : MonoBehaviour {
 
 				//GUI.Label(new Rect((int)Input.mousePosition.x + 14, Screen.height - (int)Input.mousePosition.y + 4, 150, 150), GUI.tooltip, tooltip);
 				DrawOutline(new Rect((int)Input.mousePosition.x + 20, Screen.height - (int)Input.mousePosition.y + 8, 135, 135), GUI.tooltip, tooltip, Color.black);
-			}
-
-		}
+            }
+            //GUI.Label(new Rect(700, 400, 100, 20), "Gold: " + gold);
+        }
+        else
+        {
+            goldText.text = "";
+        }
 
 	}
 
-	public static void DrawOutline(Rect pos, string text, GUIStyle style, Color color)
+    void InvokeMethod(int argument, string name, System.Type type)
+    {
+        MethodInfo method = type.GetMethod(name);
+        object[] parameters = new object[] { (object)argument };
+        method.Invoke(this, parameters);
+    }
+
+    public static void DrawOutline(Rect pos, string text, GUIStyle style, Color color)
 	{
 		Color oldColor = style.normal.textColor;
 		style.normal.textColor = color;
@@ -445,13 +445,13 @@ public class Upgrading : MonoBehaviour {
 	public void DrawFireball(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Fireball");
+        //GUI.Label(new Rect(130, 0, 100, 30), "Fireball");
+        DrawOutline(new Rect(130, 0, 100, 30), "Fireball", "label", Color.black);
+		fireballDot.Draw (rect1, spellCasting, "fireballDot");
+		fireballFinalBlast.Draw (rect2, spellCasting, "fireballFinalBlast");
 
-		fireballDot.Draw (rect1, spellCasting);
-		fireballFinalBlast.Draw (rect2, spellCasting);
-
-		fireballDmg.Draw (rect3, spellCasting);
-		if(fireballCd.Draw(rect4, spellCasting))
+		fireballDmg.Draw (rect3, spellCasting, "fireballDmg");
+		if(fireballCd.Draw(rect4, spellCasting, "fireballCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -476,38 +476,40 @@ public class Upgrading : MonoBehaviour {
 	public void DrawHealingWard(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Healing");
-		
-		healingDuration.Draw (rect1, spellCasting);
-		healingDamageReduct.Draw (rect2, spellCasting);
+        DrawOutline(new Rect(130, 0, 100, 30), "Healing", "label", Color.black);
 
-		healingBloom.Draw (rect3, spellCasting);
-		healingBurst.Draw (rect4, spellCasting);
+        healingDuration.Draw (rect1, spellCasting, "healingDuration");
+		healingDamageReduct.Draw (rect2, spellCasting, "healingDamageReduct");
+
+		healingBloom.Draw (rect3, spellCasting, "healingBloom");
+		healingBurst.Draw (rect4, spellCasting, "healingBurst");
 		GUI.EndGroup();
 	}
 
 	public void DrawBindingShot(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Binding Shot");
-		
-		bindingDuration.Draw (rect1 + new Vector2(75, 0), spellCasting);
-		bindingSilence.Draw (rect2, spellCasting);
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Binding shot", "label", Color.black);
+
+        bindingDuration.Draw (rect1 + new Vector2(75, 0), spellCasting, "bindingDuration");
+		bindingSilence.Draw (rect2, spellCasting, "bindingSilence");
 		
 		//bindingLength.Draw (new Vector2 (180, 30), spellCasting);
-		bindingAmplify.Draw (rect4, spellCasting);
+		bindingAmplify.Draw (rect4, spellCasting, "bindingAmplify");
 		GUI.EndGroup();
 	}
 
 	public void DrawBlink(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Blink");
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Blink", "label", Color.black);
+
+        blinkDmg.Draw (rect1, spellCasting, "blinkDmg");
+		blinkThrust.Draw (rect2, spellCasting, "blinkThrust");
 		
-		blinkDmg.Draw (rect1, spellCasting);
-		blinkThrust.Draw (rect2, spellCasting);
-		
-		if(blinkCd.Draw(rect3, spellCasting))
+		if(blinkCd.Draw(rect3, spellCasting, "blinkCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -527,7 +529,7 @@ public class Upgrading : MonoBehaviour {
 			}
 		}
 
-		if(blinkInstant.Draw(rect4, spellCasting))
+		if(blinkInstant.Draw(rect4, spellCasting, "blinkInstant"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -544,25 +546,27 @@ public class Upgrading : MonoBehaviour {
 	public void DrawPrisonCenter(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Frost Prison");
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Frost Prison", "label", Color.black);
+
+        frostPrisonDuration.Draw (rect1, spellCasting, "frostPrisonDuration");
+		frostPrisonCircleWall.Draw (rect2, spellCasting, "frostPrisonCircleWall");
 		
-		frostPrisonDuration.Draw (rect1, spellCasting);
-		frostPrisonCircleWall.Draw (rect2, spellCasting);
-		
-		frostPrisonRamp.Draw (rect3, spellCasting);
-		frostPrisonStorm.Draw (rect4, spellCasting);
+		frostPrisonRamp.Draw (rect3, spellCasting, "frostPrisonRamp");
+		frostPrisonStorm.Draw (rect4, spellCasting, "frostPrisonStorm");
 		GUI.EndGroup();
 	}
 
 	public void DrawHook(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Grappling Hook");
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Hook", "label", Color.black);
+
+        hookDmg.Draw (rect1, spellCasting, "hookDmg");
+		hookPull.Draw (rect2, spellCasting, "hookPull");
 		
-		hookDmg.Draw (rect1, spellCasting);
-		hookPull.Draw (rect2, spellCasting);
-		
-		if(hookCd.Draw(rect3, spellCasting))
+		if(hookCd.Draw(rect3, spellCasting, "hookCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -581,67 +585,17 @@ public class Upgrading : MonoBehaviour {
 				}
 			}
 		}
-		hookInvu.Draw (rect4, spellCasting);
-		GUI.EndGroup();
-	}
-
-	public void DrawIceRang(int slot)
-	{
-		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Ice-rang");
-		
-		iceRangSlow.Draw (rect1, spellCasting);
-		if(iceRangCd2.Draw(rect2, spellCasting))
-		{
-			for (int i = 0; i < spells.Count; i++)
-			{
-				if(spells[i].spellName == "IceRang")
-				{
-					spells[i].spellMaxCd -= 1.5f;
-					System.Type t = cd.GetType();
-					FieldInfo[] fields = t.GetFields();
-					foreach(FieldInfo f in fields)
-					{
-						if(f.Name.Equals("spell" + i + "MaxCD"))
-						{
-							f.SetValue(cd, (float)f.GetValue(cd) - 1.5f);
-						}
-					}
-				}
-			}
-		}
-
-		iceRangDmg.Draw (rect3, spellCasting);
-		if(iceRangCd.Draw(rect4, spellCasting))
-		{
-			for (int i = 0; i < spells.Count; i++)
-			{
-				if(spells[i].spellName == "IceRang")
-				{
-					spells[i].spellMaxCd -= 1.5f;
-					System.Type t = cd.GetType();
-					FieldInfo[] fields = t.GetFields();
-					foreach(FieldInfo f in fields)
-					{
-						if(f.Name.Equals("spell" + i + "MaxCD"))
-						{
-							f.SetValue(cd, (float)f.GetValue(cd) - 1.5f);
-						}
-					}
-				}
-			}
-		}
-
-		//iceRangBounce.Draw (rect4, spellCasting);
+		hookInvu.Draw (rect4, spellCasting, "hookInvu");
 		GUI.EndGroup();
 	}
 
 	public void DrawMagmaBlastAlternative(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Magma Blast");
 
-		if(magmaBlastCd.Draw(rect1, spellCasting))
+        DrawOutline(new Rect(130, 0, 100, 30), "Magma Blast", "label", Color.black);
+
+        if (magmaBlastCd.Draw(rect1, spellCasting, "magmaBlastCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -660,32 +614,33 @@ public class Upgrading : MonoBehaviour {
 				}
 			}
 		}
-		if(magmaBlastBlackhole.Draw (rect2, spellCasting))
-		{
-			for (int i = 0; i < spells.Count; i++)
-			{
-				if(spells[i].spellName == "MagmaBlastAlternative")
-				{
-					spells[i].totalCastTime = 0.3f;
-					spells[i].castTime = 0.3f;
-				}
-			}
-		}
+		//if(magmaBlastBlackhole.Draw (rect2, spellCasting, "magmaBlastBlackhole"))
+		//{
+		//	for (int i = 0; i < spells.Count; i++)
+		//	{
+		//		if(spells[i].spellName == "MagmaBlastAlternative")
+		//		{
+		//			spells[i].totalCastTime = 0.3f;
+		//			spells[i].castTime = 0.3f;
+		//		}
+		//	}
+		//}
 		
-		magmaBlastDmg.Draw (rect3, spellCasting);
-		magmaBlastAmplify.Draw (rect4, spellCasting);
+		magmaBlastDmg.Draw (rect3, spellCasting, "magmaBlastDmg");
+		magmaBlastAmplify.Draw (rect4, spellCasting, "magmaBlastAmplify");
 		GUI.EndGroup();
 	}
 
 	public void DrawNewShield(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Reflect Shield");
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Reflect Shield", "label", Color.black);
+
+        shieldAmp.Draw (rect1, spellCasting, "shieldAmp");
+		shieldAim.Draw (rect2, spellCasting, "shieldAim");
 		
-		shieldAmp.Draw (rect1, spellCasting);
-		shieldAim.Draw (rect2, spellCasting);
-		
-		if(shieldCd.Draw (rect3, spellCasting))
+		if(shieldCd.Draw (rect3, spellCasting, "shieldCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -704,19 +659,20 @@ public class Upgrading : MonoBehaviour {
 				}
 			}
 		}
-		shieldAbsorb.Draw (rect4, spellCasting);
+		shieldAbsorb.Draw (rect4, spellCasting, "shieldAbsorb");
 		GUI.EndGroup();
 	}
 
 	public void DrawWindWalkShield(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Invisibility Shield");
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Invisibility Shield", "label", Color.black);
+
+        windShieldDuration.Draw (rect1, spellCasting, "windShieldDuration");
+		windShieldDamage.Draw (rect2, spellCasting, "windShieldDamage");
 		
-		windShieldDuration.Draw (rect1, spellCasting);
-		windShieldDamage.Draw (rect2, spellCasting);
-		
-		if(windShieldCd.Draw (rect3, spellCasting))
+		if(windShieldCd.Draw (rect3, spellCasting, "windShieldCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -735,19 +691,20 @@ public class Upgrading : MonoBehaviour {
 				}
 			}
 		}
-		windShieldInvis.Draw (rect4, spellCasting);
+		windShieldInvis.Draw (rect4, spellCasting, "windShieldInvis");
 		GUI.EndGroup();
 	}
 
 	public void DrawPlacedShield(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Reflect Shield");
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Placed Shield", "label", Color.black);
+
+        placedShieldAmp.Draw (rect3, spellCasting, "placedShieldAmp");
+		placedShieldKnockImmune.Draw (rect2, spellCasting, "placedShieldKnockImmune");
 		
-		placedShieldAmp.Draw (rect3, spellCasting);
-		placedShieldKnockImmune.Draw (rect2, spellCasting);
-		
-		if(placedShieldCd.Draw (rect1, spellCasting))
+		if(placedShieldCd.Draw (rect1, spellCasting, "placedShieldCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -766,16 +723,17 @@ public class Upgrading : MonoBehaviour {
 				}
 			}
 		}
-		placedShieldSpeed.Draw (rect4, spellCasting);
+		placedShieldSpeed.Draw (rect4, spellCasting, "placedShieldSpeed");
 		GUI.EndGroup();
 	}
 
 	public void DrawLifeGrip(int slot)
 	{
 		GUI.BeginGroup(CreateRect(slot));
-		//GUI.Label(new Rect(130, 0, 100, 30), "Reflect Shield");
-		
-		if(lifeGripCd.Draw (rect1, spellCasting))
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Life Grip", "label", Color.black);
+
+        if (lifeGripCd.Draw (rect1, spellCasting, "lifeGripCd"))
 		{
 			for (int i = 0; i < spells.Count; i++)
 			{
@@ -794,7 +752,7 @@ public class Upgrading : MonoBehaviour {
 				}
 			}
 		}
-		lifeGripShield.Draw (rect2, spellCasting);
+		lifeGripShield.Draw (rect2, spellCasting, "lifeGripShield");
 		GUI.EndGroup();
 	}
 }
@@ -820,12 +778,12 @@ public class UpgradeInfo
 		button = _button;
 	}
 
-	public bool Draw(Vector2 offset, SpellCasting spellCasting)
+	public bool Draw(Vector2 offset, SpellCasting spellCasting, string thisName)
 	{
 		bool val = false;
-		if(GUI.Button(new Rect((int)offset.x, (int)offset.y, 80, 80), new GUIContent("", tooltip), button))
+		if(GUI.Button(new Rect((int)offset.x, (int)offset.y, 80, 80), new GUIContent("", tooltip)))
 		{
-			val = Upgrade(spellCasting);
+			val = Upgrade(spellCasting, thisName);
 		}
 		Upgrading.DrawOutline (new Rect ((int)offset.x + 20, (int)offset.y + 20, 80, 80), upgradeName, "label", Color.black);
 		Upgrading.DrawOutline (new Rect(offset.x + 10, offset.y + 5, 30, 30), cost.ToString(), "label", Color.black);
@@ -833,7 +791,7 @@ public class UpgradeInfo
 		return val;
 	}
 
-	public bool Upgrade(SpellCasting spellCasting)
+	public bool Upgrade(SpellCasting spellCasting, string thisName)
 	{
 		if(relative != null)
 		{
@@ -850,7 +808,10 @@ public class UpgradeInfo
 				{
 					currentLevel++;
 					spellCasting.gold -= cost;
-					if(currentLevel == 1)
+                    Upgrades up = spellCasting.gameObject.GetComponent<Upgrades>();
+                    Type t = typeof(Upgrades);
+                    up.InvokeMethod(currentLevel, "Cmd" + thisName, t);
+                    if (currentLevel == 1)
 					{
 						//GA.API.Design.NewEvent("Upgrade:" + upgradeName);
 					}
@@ -862,7 +823,11 @@ public class UpgradeInfo
 		{
 			currentLevel++;
 			spellCasting.gold -= cost;
-			return true;
+            Upgrades up = spellCasting.gameObject.GetComponent<Upgrades>();
+            Type t = typeof(Upgrades);
+            up.InvokeMethod(currentLevel, "Cmd" + thisName, t);
+            //Invoke("Cmd" + thisName, 0);
+            return true;
 		}
 		return false;
 	}
