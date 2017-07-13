@@ -19,11 +19,8 @@ public class WindWalkShield : NetworkBehaviour
     {
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
-        if (!isServer)
-            return;
 
 		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		Debug.Log (players.Length);
 		string ownerName = spell.owner;
 		foreach(GameObject player in players)
 		{
@@ -34,7 +31,11 @@ public class WindWalkShield : NetworkBehaviour
 				owner = player;
 				break;
 			}
-		}
+        }
+
+        if (!isServer)
+            return;
+
         IncreaseDuration(spell.upgrades.windShieldDuration);
         if (spell.upgrades.windShieldDamage > 0)
             ActivateDamage();
@@ -70,9 +71,6 @@ public class WindWalkShield : NetworkBehaviour
     
 	void Update ()
     {
-        if (!isServer)
-            return;
-
 		transform.position = owner.transform.position;
 	}
 

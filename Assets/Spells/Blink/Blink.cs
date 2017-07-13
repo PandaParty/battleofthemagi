@@ -23,8 +23,6 @@ public class Blink : NetworkBehaviour {
 	void Start ()
     {
         AudioSource.PlayClipAtPoint(cast, transform.position);
-        if (!isServer)
-            return;
 
 		Vector2 aimPos = spell.aimPoint;
 		string ownerName = spell.owner;
@@ -39,6 +37,11 @@ public class Blink : NetworkBehaviour {
 				break;
 			}
         }
+
+        if (!isServer)
+            return;
+
+
         IncreaseDmg(spell.upgrades.blinkDmg);
         if(spell.upgrades.blinkThrust > 0)
         {
@@ -58,61 +61,71 @@ public class Blink : NetworkBehaviour {
 	
 	void Update ()
     {
-		if(isServer && !stopped)
-		{
+        if(!stopped)
+        {
             Vector3 velocity = new Vector3(spell.aimDir.x, spell.aimDir.y, 0) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
-            owner.GetComponent<Movement>().RpcMove(velocity);
-			transform.position += velocity;
-			unitsTravelled += 1 / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
-			owner.GetComponent<DamageSystem>().Invulnerability(0.1f);
+            transform.position += velocity;
+            unitsTravelled += 1 / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
+            owner.transform.position += velocity;
+            
+            if (isServer)
+            {
+                owner.GetComponent<DamageSystem>().Invulnerability(0.1f);
 
-			if(thrusting)
-			{
-				foreach(GameObject player in players)
-				{
-					DamageSystem damageSystem = (DamageSystem)player.GetComponent ("DamageSystem");
-					if(spell.team != damageSystem.Team())
-					{
-						if(Vector3.Distance(player.transform.position, owner.transform.position) < 1.5)
-						{
-							if(!damageSystem.invulnerable)
-							{
-                                damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
-                                RpcEndBlink();
-                                owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
-                                spell.Invoke("KillSelf", 0.5f);
-                                stopped = true;
-                                //Destroy(gameObject);
-							}
-						}
-					}
-				}
-			}
-			else if(spell.damage > 0)
-			{
-				foreach(GameObject player in players)
-				{
-					if(!playersHit.Contains(player))
-					{
-						DamageSystem damageSystem = (DamageSystem)player.GetComponent ("DamageSystem");
-						if(spell.team != damageSystem.Team())
-						{
-							if(Vector3.Distance(player.transform.position, owner.transform.position) < 3)
-							{
-								if(!damageSystem.invulnerable)
-								{
-                                    Debug.Log ("Damage time!");
+                if (thrusting)
+                {
+                    foreach (GameObject player in players)
+                    {
+                        DamageSystem damageSystem = (DamageSystem)player.GetComponent("DamageSystem");
+                        if (spell.team != damageSystem.Team())
+                        {
+                            if (Vector3.Distance(player.transform.position, owner.transform.position) < 1.5)
+                            {
+                                if (!damageSystem.invulnerable)
+                                {
                                     damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
-                                    playersHit.Add (player);
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if(Vector3.Distance(owner.transform.position, spell.aimPoint) < 1f || unitsTravelled > 11)
-			{
+                                    RpcEndBlink();
+                                    owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
+                                    spell.Invoke("KillSelf", 0.5f);
+                                    stopped = true;
+                                    //Destroy(gameObject);
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (spell.damage > 0)
+                {
+                    foreach (GameObject player in players)
+                    {
+                        if (!playersHit.Contains(player))
+                        {
+                            DamageSystem damageSystem = (DamageSystem)player.GetComponent("DamageSystem");
+                            if (spell.team != damageSystem.Team())
+                            {
+                                if (Vector3.Distance(player.transform.position, owner.transform.position) < 3)
+                                {
+                                    if (!damageSystem.invulnerable)
+                                    {
+                                        Debug.Log("Damage time!");
+                                        damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
+                                        playersHit.Add(player);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (Vector3.Distance(owner.transform.position, spell.aimPoint) < 1f || unitsTravelled > 11)
+            {
+                stopped = true;
+            }
+        }
+        if(isServer)
+        {
+            if (Vector3.Distance(owner.transform.position, spell.aimPoint) < 1f || unitsTravelled > 11)
+            {
                 RpcEndBlink();
                 owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
                 spell.Invoke("KillSelf", 0.5f);

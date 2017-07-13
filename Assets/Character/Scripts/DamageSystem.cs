@@ -419,7 +419,7 @@ public class DamageSystem : NetworkBehaviour
 			}
 			if(damage >= 5)
 			{
-				spellCasting.EndChannelingPowerUp();
+				spellCasting.RpcEndChannelingPowerUp();
 				if(movement.bound != Vector3.zero)
 				{
 					movement.bound = Vector3.zero;
@@ -471,7 +471,7 @@ public class DamageSystem : NetworkBehaviour
     [ClientRpc]
     void RpcStopCasting()
     {
-        spellCasting.EndChannelingPowerUp();
+        spellCasting.CmdEndChannelingPowerUp();
         if (movement.bound != Vector3.zero)
         {
             movement.bound = Vector3.zero;
@@ -505,7 +505,7 @@ public class DamageSystem : NetworkBehaviour
         inLava = false;
 		GetComponent<Collider2D>().enabled = true;
 		
-		spellCasting.EndChannelingPowerUp();
+		spellCasting.CmdEndChannelingPowerUp();
 	}
 	
 	[ClientRpc]

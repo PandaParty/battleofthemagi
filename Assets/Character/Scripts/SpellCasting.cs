@@ -106,6 +106,7 @@ public class SpellCasting : NetworkBehaviour {
 	void Unfreeze()
 	{
         GlobalConstants.isFrozen = false;
+        isSilenced = false;
     }
 
 	void SetTeam(int newTeam)
@@ -243,7 +244,7 @@ public class SpellCasting : NetworkBehaviour {
                 {
                     if(isShielding)
                     {
-                        EndChannelingPowerUp();
+                        CmdEndChannelingPowerUp();
                         return;
                     }
                     else
@@ -251,7 +252,7 @@ public class SpellCasting : NetworkBehaviour {
                         channelTime -= Time.deltaTime;
                         if (channelTime <= 0)
                         {
-                            FinishChannelingPowerUp();
+                            CmdFinishChannelingPowerUp();
                         }
                     }
                 }
@@ -299,26 +300,37 @@ public class SpellCasting : NetworkBehaviour {
 	{
 		isShielding = false;
 	}
-
-	public void StartChannelingPowerUp(GameObject powerUp, float duration)
+    
+    [ClientRpc]
+	public void RpcStartChannelingPowerUp(GameObject powerUp, float duration)
 	{
+        Debug.Log("Starting channel for a character");
         if (isChanneling || isCasting)
             return;
-		channelTime = duration;
+        Debug.Log("Passed return point");
+        channelTime = duration;
 		isChanneling = true;
 		currentPowerUp = powerUp;
 	}
 
-	void FinishChannelingPowerUp()
+    [Command]
+	void CmdFinishChannelingPowerUp()
 	{
 		if(currentPowerUp != null)
 		{
 			currentPowerUp.SendMessage("Capped", gameObject);
 		}
-		EndChannelingPowerUp();
+		RpcEndChannelingPowerUp();
 	}
 
-	public void EndChannelingPowerUp()
+    [Command]
+    public void CmdEndChannelingPowerUp()
+    {
+        RpcEndChannelingPowerUp();
+    }
+
+    [ClientRpc]
+	public void RpcEndChannelingPowerUp()
 	{
 		isChanneling = false;
 		currentPowerUp = null;
@@ -346,7 +358,7 @@ public class SpellCasting : NetworkBehaviour {
 		{
 			if(isChanneling)
 			{
-				EndChannelingPowerUp();
+				CmdEndChannelingPowerUp();
 			}
 			if(spell.spellCd <= 0)
 			{

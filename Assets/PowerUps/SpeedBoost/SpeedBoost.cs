@@ -14,7 +14,7 @@ public class SpeedBoost : NetworkBehaviour {
 
         if (other.CompareTag("Player"))
         {
-            other.GetComponent<SpellCasting>().StartChannelingPowerUp(gameObject, 4);
+            other.GetComponent<SpellCasting>().RpcStartChannelingPowerUp(gameObject, 4);
         }
     }
 
@@ -22,17 +22,24 @@ public class SpeedBoost : NetworkBehaviour {
     {
         if (other.CompareTag("Player"))
         {
-            other.GetComponent<SpellCasting>().EndChannelingPowerUp();
+            other.GetComponent<SpellCasting>().RpcEndChannelingPowerUp();
         }
     }
 
     void Capped(GameObject player)
     {
-        player.GetComponent<Movement>().RpcSpeedBoost(2f, 10f);
+        player.GetComponent<Movement>().RpcSpeedBoost(2f, 8f);
         player.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, "world");
         var newEffect = Instantiate(effect);
         newEffect.GetComponent<FollowPlayer>().SetFollow(player, 8f);
         NetworkServer.Spawn(newEffect);
+
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject p in players)
+        {
+            p.GetComponent<SpellCasting>().RpcEndChannelingPowerUp();
+        }
+
         Destroy(gameObject);
     }
 }

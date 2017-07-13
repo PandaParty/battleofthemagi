@@ -19,21 +19,22 @@ public class Shield : NetworkBehaviour
     {
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        string ownerName = spell.owner;
+        foreach (GameObject player in players)
+        {
+            string playerName = ((SpellCasting)player.GetComponent("SpellCasting")).playerName;
+
+            if (ownerName == playerName)
+            {
+                owner = player;
+                break;
+            }
+        }
+
         if (!isServer)
             return;
-
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		string ownerName = spell.owner;
-		foreach(GameObject player in players)
-		{
-			string playerName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			
-			if(ownerName == playerName)
-			{
-				owner = player;
-				break;
-			}
-		}
+        
 		owner.SendMessage("IsShielding");
 		owner.GetComponent<SpellCasting>().Invoke ("StopShielding", duration);
 		spell.Invoke ("KillSelf", duration);
@@ -51,12 +52,11 @@ public class Shield : NetworkBehaviour
 	{
 		absorbAmount = 0.5f * absLevel;
 	}
-
-
-	// Update is called once per frame
-	void Update () {
-        if (!isServer)
-            return;
+    
+	void Update ()
+    {
+        //if (!isServer)
+        //    return;
 		transform.position = owner.transform.position;
 	}
 
