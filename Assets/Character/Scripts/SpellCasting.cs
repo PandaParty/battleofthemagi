@@ -72,6 +72,7 @@ public class SpellCasting : NetworkBehaviour {
 	bool isChanneling;
 	GameObject currentPowerUp;
 
+    [SyncVar]
 	public bool isShielding = false;
 	
 	public float dmgBoost = 1;
@@ -107,6 +108,7 @@ public class SpellCasting : NetworkBehaviour {
 	{
         GlobalConstants.isFrozen = false;
         isSilenced = false;
+        StopCasting();
     }
 
 	void SetTeam(int newTeam)
@@ -390,7 +392,7 @@ public class SpellCasting : NetworkBehaviour {
 
 	void OnGUI()
 	{
-		if(isCasting && GameHandler.state != GameHandler.State.Upgrade)
+		if(isCasting && GameHandler.state == GameHandler.State.Game)
 		{
 			float castProgress = 1 - (currentCast.castTime / currentCast.totalCastTime);
 			Vector3 playerPos = Camera.main.WorldToScreenPoint(new Vector3(transform.position.x, transform.position.y, 0));
@@ -398,7 +400,7 @@ public class SpellCasting : NetworkBehaviour {
 			GUI.DrawTexture (new Rect(playerPos.x - 24, Screen.height - playerPos.y - 44, castProgress * 48, 6), castBar);
 		}
 
-		if(isChanneling && GameHandler.state != GameHandler.State.Upgrade)
+		if(isLocalPlayer && isChanneling && GameHandler.state == GameHandler.State.Game)
 		{
 			float castProgress = 1 - (channelTime / 4);
 			Vector3 playerPos = Camera.main.WorldToScreenPoint(new Vector3(transform.position.x, transform.position.y, 0));
