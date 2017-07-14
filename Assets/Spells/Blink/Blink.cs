@@ -115,7 +115,7 @@ public class Blink : NetworkBehaviour {
 			{
                 RpcEndBlink();
                 owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
-                spell.Invoke("KillSelf", 0.5f);
+                spell.Invoke("KillSelf", 1);
                 stopped = true;
             }
 

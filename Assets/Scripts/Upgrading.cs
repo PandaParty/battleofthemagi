@@ -810,7 +810,7 @@ public class UpgradeInfo
 					spellCasting.gold -= cost;
                     Upgrades up = spellCasting.gameObject.GetComponent<Upgrades>();
                     Type t = typeof(Upgrades);
-                    up.InvokeMethod(currentLevel, "Cmd" + thisName, t);
+                    up.InvokeMethod(currentLevel, "Call" + thisName, t);
                     if (currentLevel == 1)
 					{
 						//GA.API.Design.NewEvent("Upgrade:" + upgradeName);
@@ -825,7 +825,7 @@ public class UpgradeInfo
 			spellCasting.gold -= cost;
             Upgrades up = spellCasting.gameObject.GetComponent<Upgrades>();
             Type t = typeof(Upgrades);
-            up.InvokeMethod(currentLevel, "Cmd" + thisName, t);
+            up.InvokeMethod(currentLevel, "Call" + thisName, t);
             //Invoke("Cmd" + thisName, 0);
             return true;
 		}

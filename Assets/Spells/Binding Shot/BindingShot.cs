@@ -18,9 +18,9 @@ public class BindingShot : NetworkBehaviour
 
 	bool silences;
 	bool amplifies;
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		oldSpeed = speed;
 		spell.SetColor();
 		Vector2 aimPos = ((Spell)gameObject.GetComponent("Spell")).aimPoint;
@@ -85,11 +85,11 @@ public class BindingShot : NetworkBehaviour
 					}
 
                     SpellCasting spellCasting = (SpellCasting)other.GetComponent("SpellCasting");
-                    //GameObject rope = Instantiate(bindRope, this.transform.position, Quaternion.identity);
-                    //rope.GetComponent<BindRope>().SetKill(duration);
-                    //rope.GetComponent<BindRope>().SetBinds(transform.position, spellCasting.playerName);
+                    GameObject rope = Instantiate(bindRope, this.transform.position, Quaternion.identity);
+                    rope.GetComponent<BindRope>().SetKill(duration);
+                    rope.GetComponent<BindRope>().SetBinds(transform.position, spellCasting.playerName);
                     GameObject hit = Instantiate(bindingShotHit, this.transform.position, Quaternion.identity);
-                    //NetworkServer.Spawn(rope);
+                    NetworkServer.Spawn(rope);
                     NetworkServer.Spawn(hit);
                     Destroy(gameObject);
                 }

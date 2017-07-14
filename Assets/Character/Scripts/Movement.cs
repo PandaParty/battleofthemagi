@@ -92,13 +92,16 @@ public class Movement : NetworkBehaviour {
             return;
 
         GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-        if (!spellCasting.isCasting && !GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
+        if (!GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
         {
             Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
             movement = Vector3.Normalize(movement);
             if (bound == Vector3.zero)
             {
-                transform.position += (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60;
+                if(!spellCasting.isCasting)
+                {
+                    transform.position += (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60;
+                }
                 transform.position += damageSystem.knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
             }
             else
@@ -135,7 +138,6 @@ public class Movement : NetworkBehaviour {
 	{
 		bound = Vector3.zero;
 	}
-
 }
 
 public static class GlobalConstants
