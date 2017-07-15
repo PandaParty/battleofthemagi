@@ -36,6 +36,7 @@ public class CooldownInfo : MonoBehaviour {
     public Image sp5Cd;
 
     public Sprite fireball;
+    public Sprite arcaneBolt;
     public Sprite bindingShot;
     public Sprite blink;
     public Sprite healingWard;
@@ -56,15 +57,6 @@ public class CooldownInfo : MonoBehaviour {
 
 
     public Vector3 player1Pos;
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 
 	void SetSpell1CD(float cd)
 	{
@@ -175,6 +167,8 @@ public class CooldownInfo : MonoBehaviour {
         {
             case "Fireball":
                 return fireball;
+            case "ArcaneBolt":
+                return arcaneBolt;
             case "Blink":
                 return blink;
             case "BindingShot":

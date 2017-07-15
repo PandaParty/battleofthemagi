@@ -24,9 +24,12 @@ public class Fireball : NetworkBehaviour
 		Vector2 aimPos = ((Spell)gameObject.GetComponent("Spell")).aimPoint;
 		spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
-		spell.Invoke ("KillSelf", 5);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
+        if (!isServer)
+            return;
+
+        spell.Invoke("KillSelf", 5);
         IncreaseDot(spell.upgrades.fireballDot);
         if(spell.upgrades.fireballFinalBlast > 0)
         {

@@ -5,13 +5,12 @@ using System.Reflection;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 
-public class SpellCasting : NetworkBehaviour {
-
-
+public class SpellCasting : NetworkBehaviour
+{
 	public GameObject blink;
 	public GameObject fireball;
+    public GameObject arcaneBolt;
 	public GameObject shield;
-	public GameObject waterwave;
 	public GameObject magmaBlast;
 	public GameObject hook;
 	public GameObject ricochetBolt;
@@ -94,10 +93,16 @@ public class SpellCasting : NetworkBehaviour {
 
 	public GoogleAnalyticsV3 analytics;
 
+    public int arcaneBoltResets = 0;
+
+    private float knockBoost = 1;
+
     [ClientRpc]
     public void RpcReset()
 	{
 		damageDone = 0;
+        ResetArcaneBoltResets();
+        knockBoost = 1;
 		GlobalConstants.isFrozen = true;
         //Silence(6);
         myName.GetComponent<TextMesh>().text = playerName;
@@ -147,6 +152,7 @@ public class SpellCasting : NetworkBehaviour {
 		spells.Add (healingWard);
 		spells.Add (placedShield);
 		spells.Add (lifeGrip);
+        spells.Add(arcaneBolt);
 		if(isLocalPlayer)
 		{
 			playerName = PlayerPrefs.GetString ("Player Name");
@@ -440,6 +446,13 @@ public class SpellCasting : NetworkBehaviour {
 				spellScript.owner = owner;
 				spellScript.team = spellTeam;
 				spellScript.damage *= damageBoost;
+                spellScript.knockFactor *= damageBoost;
+                spellScript.knockFactor *= knockBoost;
+                if(knockBoost > 1)
+                {
+                    Debug.Log("Using knock boost");
+                    knockBoost = 1;
+                }
 				spellScript.aimPoint = new Vector2(aimPointX, aimPointY);
                 spellScript.upgrades = GetComponent<Upgrades>();
                 NetworkServer.Spawn(newSpell);
@@ -523,6 +536,74 @@ public class SpellCasting : NetworkBehaviour {
 	{
 		AudioSource.PlayClipAtPoint(troll2, transform.position);
 	}
+    
+    public void ArcaneBoltHit(bool hasKnockBoost, bool hasCd)
+    {
+        if (hasCd)
+        {
+            RpcLowerAllCds(0.1f);
+        }
+        if (arcaneBoltResets == 2)
+        {
+            if (hasKnockBoost)
+            {
+                knockBoost = 1.4f;
+                Debug.Log("Knock boost activated");
+            }
+        }
+        if (arcaneBoltResets < 2)
+        {
+            arcaneBoltResets++;
+            RpcLowerCd("ArcaneBolt", 10);
+            if(arcaneBoltResets == 2)
+            {
+                Invoke("ResetArcaneBoltResets", 7);
+            }
+        }
+    }
+
+    void ResetArcaneBoltResets()
+    {
+        arcaneBoltResets = 0;
+    }
+
+    [ClientRpc]
+    public void RpcLowerCd(string spellName, float amount)
+    {
+        if (!isLocalPlayer)
+            return;
+
+        if (mob.spellName == spellName)
+        {
+            mob.spellCd -= amount;
+        }
+        else if (def.spellName == spellName)
+        {
+            def.spellCd -= amount;
+        }
+        else if (off1.spellName == spellName)
+        {
+            off1.spellCd -= amount;
+        }
+        else if (off2.spellName == spellName)
+        {
+            off2.spellCd -= amount;
+        }
+        else if (off3.spellName == spellName)
+        {
+            off3.spellCd -= amount;
+        }
+    }
+
+    [ClientRpc]
+    public void RpcLowerAllCds(float amount)
+    {
+        mob.spellCd -= mob.spellMaxCd * amount;
+        def.spellCd -= def.spellMaxCd * amount;
+        off1.spellCd -= off1.spellMaxCd * amount;
+        off2.spellCd -= off2.spellMaxCd * amount;
+        off3.spellCd -= off3.spellMaxCd * amount;
+    }
 
 	[RPC]
 	public void LowerCd(float amount)

@@ -14,7 +14,6 @@ public class Upgrades : NetworkBehaviour
     [Command]
     public void CmdfireballDot(int lvl)
     {
-        Debug.Log("Recieved upgrade command");
         fireballDot = lvl;
     }
     public void CallfireballDot(int lvl)
@@ -422,6 +421,49 @@ public class Upgrades : NetworkBehaviour
     {
         CmdlifeGripShield(lvl);
     }
+
+    public int arcaneBoltDmg;
+    public int arcaneBoltKnock;
+    public int arcaneBoltHeal;
+    public int arcaneBoltCd;
+
+    [Command]
+    public void CmdarcaneBoltDmg(int lvl)
+    {
+        arcaneBoltDmg = lvl;
+    }
+    public void CallarcaneBoltDmg(int lvl)
+    {
+        CmdarcaneBoltDmg(lvl);
+    }
+    [Command]
+    public void CmdarcaneBoltKnock(int lvl)
+    {
+        arcaneBoltKnock = lvl;
+    }
+    public void CallarcaneBoltKnock(int lvl)
+    {
+        CmdarcaneBoltKnock(lvl);
+    }
+    [Command]
+    public void CmdarcaneBoltHeal(int lvl)
+    {
+        arcaneBoltHeal = lvl;
+    }
+    public void CallarcaneBoltHeal(int lvl)
+    {
+        CmdarcaneBoltHeal(lvl);
+    }
+    [Command]
+    public void CmdarcaneBoltCd(int lvl)
+    {
+        arcaneBoltCd = lvl;
+    }
+    public void CallarcaneBoltCd(int lvl)
+    {
+        CmdarcaneBoltCd(lvl);
+    }
+
 
     public void InvokeMethod(int argument, string name, System.Type type)
     {

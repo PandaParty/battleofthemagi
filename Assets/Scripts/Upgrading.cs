@@ -74,6 +74,11 @@ public class Upgrading : MonoBehaviour {
 	public UpgradeInfo lifeGripCd;
 	public UpgradeInfo lifeGripShield;
 
+    public UpgradeInfo arcaneBoltDmg;
+    public UpgradeInfo arcaneBoltKnock;
+    public UpgradeInfo arcaneBoltHeal;
+    public UpgradeInfo arcaneBoltCd;
+
 	#endregion
 
 	CooldownInfo cd = null;
@@ -300,12 +305,26 @@ public class Upgrading : MonoBehaviour {
 		lifeGripCd.tooltip = "Cooldown decreased by 0.5/1/1.5";
 		lifeGripShield = new UpgradeInfo("Absorb Shield", 1, 120, lifeGripCd, button);
 		lifeGripShield.tooltip = "Gripped allies get a shield that absorbs 30 damage for 4 seconds";
-
 		
 		lifeGripCd.relative = bindingLength;
-		#endregion
+        #endregion
 
-		Invoke ("SetSpellCasting", 2);
+        #region Arcane Bolt
+        arcaneBoltDmg = new UpgradeInfo("Damage", 3, 40, null, button);
+        arcaneBoltDmg.tooltip = "Hitting an arcane bolt increases the damage for the next arcane bolt by 10/15/20% (this stacks up to two times)";
+        arcaneBoltKnock = new UpgradeInfo("Knockback", 1, 120, arcaneBoltDmg, button);
+        arcaneBoltKnock.tooltip = "Hitting all three arcane bolts in a row increases the knockback of your next spell by 40%";
+
+        arcaneBoltHeal = new UpgradeInfo("Self heal", 3, 40, null, button);
+        arcaneBoltHeal.tooltip = "Hitting an arcane bolt heals you for 3/6/9 health";
+        arcaneBoltCd = new UpgradeInfo("Cooldown", 1, 120, arcaneBoltHeal, button);
+        arcaneBoltCd.tooltip = "Hitting an arcane bolt lowers all your cooldowns by 10%";
+
+        arcaneBoltDmg.relative = arcaneBoltHeal;
+        arcaneBoltHeal.relative = arcaneBoltDmg;
+        #endregion
+
+        Invoke("SetSpellCasting", 2);
 	}
 
 	void Awake()
@@ -356,10 +375,10 @@ public class Upgrading : MonoBehaviour {
 			gold = spellCasting.gold.ToString();
 
 			goldText.text = "Gold: " + gold;
-            //if (GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX"))
-            //{
-            //    spellCasting.gold += 100;
-            //}
+            if (GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX"))
+            {
+                spellCasting.gold += 100;
+            }
 
 
             GUI.DrawTexture(new Rect(80, 45, 1120, 630), background);
@@ -755,6 +774,21 @@ public class Upgrading : MonoBehaviour {
 		lifeGripShield.Draw (rect2, spellCasting, "lifeGripShield");
 		GUI.EndGroup();
 	}
+
+    public void DrawArcaneBolt(int slot)
+    {
+        GUI.BeginGroup(CreateRect(slot));
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Arcane Bolt", "label", Color.black);
+
+        arcaneBoltDmg.Draw(rect1, spellCasting, "arcaneBoltDmg");
+        arcaneBoltKnock.Draw(rect2, spellCasting, "arcaneBoltKnock");
+
+        arcaneBoltHeal.Draw(rect3, spellCasting, "arcaneBoltHeal");
+        arcaneBoltCd.Draw(rect4, spellCasting, "arcaneBoltCd");
+        GUI.EndGroup();
+    }
+
 }
 
 public class UpgradeInfo
