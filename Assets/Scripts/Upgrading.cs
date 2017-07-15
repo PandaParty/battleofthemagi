@@ -375,10 +375,10 @@ public class Upgrading : MonoBehaviour {
 			gold = spellCasting.gold.ToString();
 
 			goldText.text = "Gold: " + gold;
-            if (GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX"))
-            {
-                spellCasting.gold += 100;
-            }
+            //if (GUI.Button(new Rect(140, 10, 20, 20), "GOLDHAXXX"))
+            //{
+            //    spellCasting.gold += 100;
+            //}
 
 
             GUI.DrawTexture(new Rect(80, 45, 1120, 630), background);

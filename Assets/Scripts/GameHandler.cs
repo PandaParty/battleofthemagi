@@ -195,8 +195,8 @@ public class GameHandler : NetworkBehaviour
 		currentRound ++;
 		state = State.Upgrade;
 		isUpgrading = true;
-		timeCounter = 10;
-		Invoke ("SwapToGame", 10);
+		timeCounter = 60;
+		Invoke ("SwapToGame", 60);
 	}
 
 	[ClientRpc]

@@ -183,7 +183,7 @@ public class DamageSystem : NetworkBehaviour
 			
 			if(inLava)
 			{
-				Damage (5.12f * lavaAmp * Time.deltaTime * 60, 0, Vector3.zero, "world");
+				Damage (0.12f * lavaAmp * Time.deltaTime * 60, 0, Vector3.zero, "world");
 			}
 			
 			
