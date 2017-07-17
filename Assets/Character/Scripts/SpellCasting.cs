@@ -97,6 +97,8 @@ public class SpellCasting : NetworkBehaviour
 
     private float knockBoost = 1;
 
+    private float cooldownSpeed = 1.0f;
+
     [ClientRpc]
     public void RpcReset()
 	{
@@ -360,7 +362,7 @@ public class SpellCasting : NetworkBehaviour
 
 	public void UpdateSpell(SpellInfo spell)
 	{
-		spell.spellCd -= Time.deltaTime;
+		spell.spellCd -= Time.deltaTime * cooldownSpeed;
 
 		if(Input.GetAxis("Spell" + spell.slot) > 0.1f && !isCasting && !isDead && !isSilenced)
 		{
@@ -603,6 +605,19 @@ public class SpellCasting : NetworkBehaviour
         off1.spellCd -= off1.spellMaxCd * amount;
         off2.spellCd -= off2.spellMaxCd * amount;
         off3.spellCd -= off3.spellMaxCd * amount;
+    }
+
+    [ClientRpc]
+    public void RpcCdSpeed(float amount, float duration)
+    {
+        cooldownSpeed *= amount;
+        CancelInvoke("ResetCdSpeed");
+        Invoke("ResetCdSpeed", duration);
+    }
+
+    public void ResetCdSpeed()
+    {
+        cooldownSpeed = 1.0f;
     }
 
 	[RPC]

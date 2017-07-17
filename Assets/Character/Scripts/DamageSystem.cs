@@ -48,6 +48,9 @@ public class DamageSystem : NetworkBehaviour
 	float lavaAmp = 1;
 	
 	float amp = 1;
+    
+    private int directAmpCount = 0;
+    private float directAmpAmount = 1.0f;
 
 	float absorb = 0;
 
@@ -96,7 +99,6 @@ public class DamageSystem : NetworkBehaviour
 		Invoke("Respawn", 3);
 	}
 	
-	// Use this for initialization
 	void Start ()
     {
 		maxHealth = health;
@@ -371,8 +373,18 @@ public class DamageSystem : NetworkBehaviour
 				//return;
 			}
 			if(damage > 0)
-			{
-				if(absorb > damage)
+            {
+                if(damage >= 5)
+                {
+                    //Cause extra damage due to direct amp
+                    if (directAmpCount > 0)
+                    {
+                        directAmpCount--;
+                        damage *= directAmpAmount;
+                        knockFactor *= directAmpAmount;
+                    }
+                }
+                if (absorb > damage)
 				{
 					absorb -= damage;
 				}
@@ -420,7 +432,9 @@ public class DamageSystem : NetworkBehaviour
 			if(damage >= 5)
 			{
                 if(isServer)
-				    spellCasting.RpcEndChannelingPowerUp();
+                {
+                    spellCasting.RpcEndChannelingPowerUp();
+                }
 				if(movement.bound != Vector3.zero)
 				{
 					movement.bound = Vector3.zero;
@@ -529,6 +543,21 @@ public class DamageSystem : NetworkBehaviour
 		health = currentHealth;
 		damageTaken = dmg;
 	}
+
+    public void DirectDamageAmp(float amount, int count, float duration)
+    {
+        directAmpAmount = amount;
+        directAmpCount += count;
+        CancelInvoke("RemoveDirectDamageAmp");
+        Invoke("RemoveDirectDamageAmp", duration);
+    }
+
+    public void RemoveDirectDamageAmp()
+    {
+        directAmpAmount = 1.0f;
+        directAmpCount = 0;
+    }
+
 }
 
 public class Dot

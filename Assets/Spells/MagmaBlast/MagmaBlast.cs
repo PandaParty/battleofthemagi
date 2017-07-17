@@ -9,7 +9,7 @@ public class MagmaBlast : NetworkBehaviour
 	public AudioClip cast;
 	public bool amplify;
 	public float selfDmg = 4;
-	// Use this for initialization
+
 	void Start ()
     {
 		spell.SetColor();

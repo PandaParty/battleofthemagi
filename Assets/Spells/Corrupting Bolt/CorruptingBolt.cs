@@ -16,6 +16,17 @@ public class CorruptingBolt : NetworkBehaviour
     public float dotDamage;
     public float duration;
 
+    public float amplifyAmount = 1.25f;
+    public float longerCdsAmount = 0.2f;
+    public float blastAoe = 2.0f;
+
+    private float damageReduc = 0.0f;
+    private bool longerCds;
+
+    private int amplifyCount = 0;
+
+    private bool blast;
+
     void Start()
     {
         oldSpeed = speed;
@@ -29,12 +40,11 @@ public class CorruptingBolt : NetworkBehaviour
             return;
 
         spell.Invoke("KillSelf", 5);
-        //IncreaseDot(spell.upgrades.fireballDot);
-        //if (spell.upgrades.fireballFinalBlast > 0)
-        //{
-        //    ActivateFinalBlast();
-        //}
-        //IncreaseDmg(spell.upgrades.fireballDmg);
+
+        damageReduc = spell.upgrades.corruptingBoltDmgRed * 0.1f;
+        longerCds = spell.upgrades.corruptingBoltCd > 0;
+        amplifyCount = spell.upgrades.corruptingBoltAmplify;
+        blast = spell.upgrades.corruptingBoltBlast > 0;
     }
 
     void Update()
@@ -54,8 +64,19 @@ public class CorruptingBolt : NetworkBehaviour
             {
                 if (!other.GetComponent<SpellCasting>().isShielding && !other.GetComponent<DamageSystem>().invulnerable)
                 {
-                    damageSystem.AddDot(dotDamage, duration + 0.1f, 1.0f, spell.owner, dotEffect);
-                    
+                    if (blast)
+                    {
+                        Blast();
+                    }
+                    else
+                    {
+                        damageSystem.AddDot(dotDamage, duration + 0.1f, 1.0f, spell.owner, dotEffect);
+                        other.GetComponent<SpellCasting>().RpcDamageBoost(1.0f - damageReduc, duration);
+                        if (longerCds)
+                            other.GetComponent<SpellCasting>().RpcCdSpeed(1.0f - longerCdsAmount, duration);
+                        if (amplifyCount > 0)
+                            damageSystem.DirectDamageAmp(amplifyAmount, amplifyCount, duration);
+                    }
                     GameObject hit = Instantiate(boltHit, transform.position, Quaternion.identity);
                     NetworkServer.Spawn(hit);
                     Destroy(gameObject);
@@ -65,6 +86,10 @@ public class CorruptingBolt : NetworkBehaviour
 
         if (other.CompareTag("Obstacle"))
         {
+            if (blast)
+            {
+                Blast();
+            }
             GameObject hit = Instantiate(boltHit, transform.position, Quaternion.identity);
             NetworkServer.Spawn(hit);
             Destroy(gameObject);
@@ -82,10 +107,33 @@ public class CorruptingBolt : NetworkBehaviour
                 }
                 if (otherSpell.destroysSpells)
                 {
+                    if (blast)
+                    {
+                        Blast();
+                    }
                     GameObject hit = Instantiate(boltHit, transform.position, Quaternion.identity);
                     NetworkServer.Spawn(hit);
                     Destroy(gameObject);
                 }
+            }
+        }
+    }
+
+    void Blast()
+    {
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+
+        foreach (GameObject player in players)
+        {
+            DamageSystem dmgSys = player.GetComponent<DamageSystem>();
+            if (spell.team != dmgSys.Team() && !dmgSys.isDead)
+            {
+                if (Vector3.Distance(player.transform.position, gameObject.transform.position) < blastAoe)
+                {
+                    dmgSys.AddDot(dotDamage, duration + 0.1f, 1.0f, spell.owner, dotEffect);
+                }
+                if (amplifyCount > 0)
+                    dmgSys.DirectDamageAmp(amplifyAmount, amplifyCount, duration);
             }
         }
     }
