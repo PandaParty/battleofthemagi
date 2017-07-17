@@ -79,9 +79,14 @@ public class Upgrading : MonoBehaviour {
     public UpgradeInfo arcaneBoltHeal;
     public UpgradeInfo arcaneBoltCd;
 
-	#endregion
+    public UpgradeInfo corruptingBoltDmgRed;
+    public UpgradeInfo corruptingBoltCd;
+    public UpgradeInfo corruptingBoltAmplify;
+    public UpgradeInfo corruptingBoltBlast;
 
-	CooldownInfo cd = null;
+    #endregion
+
+    CooldownInfo cd = null;
 
 	public SpellCasting spellCasting = null;
 	List<SpellInfo> spells = new List<SpellInfo>();
@@ -313,7 +318,7 @@ public class Upgrading : MonoBehaviour {
         arcaneBoltDmg = new UpgradeInfo("Damage", 3, 40, null, button);
         arcaneBoltDmg.tooltip = "Hitting an arcane bolt increases the damage for the next arcane bolt by 10/15/20% (this stacks up to two times)";
         arcaneBoltKnock = new UpgradeInfo("Knockback", 1, 120, arcaneBoltDmg, button);
-        arcaneBoltKnock.tooltip = "Hitting all three arcane bolts in a row increases the knockback of your next spell by 40%";
+        arcaneBoltKnock.tooltip = "Hitting all three arcane bolts in a row increases the knockback of your next spell by 50%";
 
         arcaneBoltHeal = new UpgradeInfo("Self heal", 3, 40, null, button);
         arcaneBoltHeal.tooltip = "Hitting an arcane bolt heals you for 3/6/9 health";
@@ -322,6 +327,21 @@ public class Upgrading : MonoBehaviour {
 
         arcaneBoltDmg.relative = arcaneBoltHeal;
         arcaneBoltHeal.relative = arcaneBoltDmg;
+        #endregion
+
+        #region Corrupting Bolt
+        corruptingBoltDmgRed = new UpgradeInfo("Damage debuff", 3, 40, null, button);
+        corruptingBoltDmgRed.tooltip = "Affected targets deal 10/20/30% less damage and healing";
+        corruptingBoltCd = new UpgradeInfo("Cooldown debuff", 1, 120, corruptingBoltDmgRed, button);
+        corruptingBoltCd.tooltip = "Affected targets have 20% longer cooldowns";
+
+        corruptingBoltAmplify = new UpgradeInfo("Amplify", 3, 40, null, button);
+        corruptingBoltAmplify.tooltip = "Affected targets take 25% more damage from the next 1/2/3 direct damage spells";
+        corruptingBoltBlast = new UpgradeInfo("AoE blast", 1, 120, arcaneBoltHeal, button);
+        corruptingBoltBlast.tooltip = "Corrupting bolt now explodes in an AoE upon hit, affecting all targets around impact point";
+
+        corruptingBoltAmplify.relative = corruptingBoltDmgRed;
+        corruptingBoltDmgRed.relative = corruptingBoltAmplify;
         #endregion
 
         Invoke("SetSpellCasting", 2);
@@ -786,6 +806,21 @@ public class Upgrading : MonoBehaviour {
 
         arcaneBoltHeal.Draw(rect3, spellCasting, "arcaneBoltHeal");
         arcaneBoltCd.Draw(rect4, spellCasting, "arcaneBoltCd");
+        GUI.EndGroup();
+    }
+
+
+    public void DrawCorruptingBolt(int slot)
+    {
+        GUI.BeginGroup(CreateRect(slot));
+
+        DrawOutline(new Rect(130, 0, 100, 30), "Corrupting Bolt", "label", Color.black);
+
+        corruptingBoltDmgRed.Draw(rect1, spellCasting, "corruptingBoltDmgRed");
+        corruptingBoltCd.Draw(rect2, spellCasting, "corruptingBoltCd");
+
+        corruptingBoltAmplify.Draw(rect3, spellCasting, "corruptingBoltAmplify");
+        corruptingBoltBlast.Draw(rect4, spellCasting, "corruptingBoltBlast");
         GUI.EndGroup();
     }
 

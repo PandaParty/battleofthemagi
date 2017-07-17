@@ -465,6 +465,49 @@ public class Upgrades : NetworkBehaviour
     }
 
 
+    public int corruptingBoltDmgRed;
+    public int corruptingBoltCd;
+    public int corruptingBoltAmplify;
+    public int corruptingBoltBlast;
+
+    [Command]
+    public void CmdcorruptingBoltDmgRed(int lvl)
+    {
+        corruptingBoltDmgRed = lvl;
+    }
+    public void CallcorruptingBoltDmgRed(int lvl)
+    {
+        CmdcorruptingBoltDmgRed(lvl);
+    }
+    [Command]
+    public void CmdcorruptingBoltCd(int lvl)
+    {
+        corruptingBoltCd = lvl;
+    }
+    public void CallcorruptingBoltCd(int lvl)
+    {
+        CmdcorruptingBoltCd(lvl);
+    }
+    [Command]
+    public void CmdcorruptingBoltAmplify(int lvl)
+    {
+        corruptingBoltAmplify = lvl;
+    }
+    public void CallcorruptingBoltAmplify(int lvl)
+    {
+        CmdcorruptingBoltAmplify(lvl);
+    }
+    [Command]
+    public void CmdcorruptingBoltBlast(int lvl)
+    {
+        corruptingBoltBlast = lvl;
+    }
+    public void CallcorruptingBoltBlast(int lvl)
+    {
+        CmdcorruptingBoltBlast(lvl);
+    }
+
+
     public void InvokeMethod(int argument, string name, System.Type type)
     {
         MethodInfo method = type.GetMethod(name);
