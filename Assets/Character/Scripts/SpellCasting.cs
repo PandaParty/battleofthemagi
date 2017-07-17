@@ -10,10 +10,10 @@ public class SpellCasting : NetworkBehaviour
 	public GameObject blink;
 	public GameObject fireball;
     public GameObject arcaneBolt;
+    public GameObject corruptingBolt;
 	public GameObject shield;
 	public GameObject magmaBlast;
 	public GameObject hook;
-	public GameObject ricochetBolt;
 	public GameObject bindingShot;
 	public GameObject iceRang;
 	public GameObject frostPrison;
@@ -144,7 +144,6 @@ public class SpellCasting : NetworkBehaviour
 		spells.Add (shield);
 		spells.Add (magmaBlast);
 		spells.Add (hook);
-		spells.Add (ricochetBolt);
 		spells.Add (bindingShot);
 		spells.Add (iceRang);
 		spells.Add (frostPrison);
@@ -153,6 +152,7 @@ public class SpellCasting : NetworkBehaviour
 		spells.Add (placedShield);
 		spells.Add (lifeGrip);
         spells.Add(arcaneBolt);
+        spells.Add(corruptingBolt);
 		if(isLocalPlayer)
 		{
 			playerName = PlayerPrefs.GetString ("Player Name");
@@ -547,7 +547,7 @@ public class SpellCasting : NetworkBehaviour
         {
             if (hasKnockBoost)
             {
-                knockBoost = 1.4f;
+                knockBoost = 1.5f;
                 Debug.Log("Knock boost activated");
             }
         }

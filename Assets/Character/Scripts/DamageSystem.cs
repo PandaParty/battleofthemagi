@@ -419,7 +419,8 @@ public class DamageSystem : NetworkBehaviour
 			}
 			if(damage >= 5)
 			{
-				spellCasting.RpcEndChannelingPowerUp();
+                if(isServer)
+				    spellCasting.RpcEndChannelingPowerUp();
 				if(movement.bound != Vector3.zero)
 				{
 					movement.bound = Vector3.zero;

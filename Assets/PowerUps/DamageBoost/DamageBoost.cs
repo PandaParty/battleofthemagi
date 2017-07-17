@@ -20,6 +20,9 @@ public class DamageBoost : NetworkBehaviour {
 
 	void OnTriggerExit2D(Collider2D other)
 	{
+        if (!isServer)
+            return;
+
 		if(other.CompareTag("Player"))
 		{
             other.GetComponent<SpellCasting>().RpcEndChannelingPowerUp();
@@ -28,6 +31,9 @@ public class DamageBoost : NetworkBehaviour {
 
 	void Capped(GameObject player)
 	{
+        if (!isServer)
+            return;
+
 		player.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, "world");
 		player.GetComponent<SpellCasting>().RpcDamageBoost(1.5f, 8f);
         var newEffect = Instantiate(effect);

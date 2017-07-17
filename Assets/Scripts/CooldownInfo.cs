@@ -38,6 +38,7 @@ public class CooldownInfo : MonoBehaviour {
     public Sprite fireball;
     public Sprite arcaneBolt;
     public Sprite bindingShot;
+    public Sprite corruptingBolt;
     public Sprite blink;
     public Sprite healingWard;
     public Sprite hook;
@@ -169,6 +170,8 @@ public class CooldownInfo : MonoBehaviour {
                 return fireball;
             case "ArcaneBolt":
                 return arcaneBolt;
+            case "CorruptingBolt":
+                return corruptingBolt;
             case "Blink":
                 return blink;
             case "BindingShot":
