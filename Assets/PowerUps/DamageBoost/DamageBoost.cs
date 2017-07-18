@@ -1,70 +1,51 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class DamageBoost : MonoBehaviour {
+public class DamageBoost : NetworkBehaviour {
 	bool someoneCapping = false;
 
 	public GameObject effect;
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 
-	void OnTriggerEnter2D(Collider2D other)
+	void OnTriggerStay2D(Collider2D other)
 	{
+        if (!isServer)
+            return;
+
 		if(other.CompareTag("Player"))
 		{
-			if(other.GetComponent<NetworkView>().isMine)
-			{
-				other.GetComponent<SpellCasting>().StartChannelingPowerUp(gameObject, 4);
-			}
-		}
-		else if(other.CompareTag("Spell"))
-		{
-			if(other.name == "WindWalkShield(Clone)" || other.name == "NewShield(Clone)")
-			{
-				Network.Destroy(other.gameObject);
-			}
+			other.GetComponent<SpellCasting>().RpcStartChannelingPowerUp(gameObject, 4);
 		}
 	}
 
 	void OnTriggerExit2D(Collider2D other)
 	{
+        if (!isServer)
+            return;
+
 		if(other.CompareTag("Player"))
 		{
-			if(other.GetComponent<NetworkView>().isMine)
-			{
-				other.SendMessage("EndChannelingPowerUp");
-			}
+            other.GetComponent<SpellCasting>().RpcEndChannelingPowerUp();
 		}
 	}
 
 	void Capped(GameObject player)
 	{
+        if (!isServer)
+            return;
+
 		player.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, "world");
-		player.GetComponent<SpellCasting>().DamageBoost(1.5f, 10f);
-		GetComponent<NetworkView>().RPC ("CreateEffect", RPCMode.All, player.GetComponent<SpellCasting>().playerName, 10.0f);
-		Network.Destroy(gameObject);
-	}
+		player.GetComponent<SpellCasting>().RpcDamageBoost(1.5f, 8f);
+        var newEffect = Instantiate(effect);
+        newEffect.GetComponent<FollowPlayer>().SetFollow(player, 8f);
+        NetworkServer.Spawn(newEffect);
 
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        foreach(GameObject p in players)
+        {
+            p.GetComponent<SpellCasting>().RpcEndChannelingPowerUp();
+        }
 
-	[RPC]
-	void CreateEffect(string playerName, float duration)
-	{
-		GameObject powerUpEffect = (GameObject)GameObject.Instantiate(effect);
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		foreach(GameObject player in players)
-		{
-			if(player.GetComponent<SpellCasting>().playerName == playerName)
-			{
-				powerUpEffect.GetComponent<FollowPlayer>().SetFollow(player, 8f);
-				break;
-			}
-		}
+        Destroy(gameObject);
 	}
 }

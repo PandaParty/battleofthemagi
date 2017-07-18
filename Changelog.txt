@@ -1,4 +1,31 @@
 Changelog:
+
+---------------
+Alpha
+---------------
+0.1
+
+Life grip no longer grants invulnerability
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------
+Pre-alpha
+---------------
+
+
 ---------------
 0.41
 ---------------
@@ -101,3 +128,4 @@ FROST PRISON REFLECT UPGRADE DOES NOT WORK
 WINDWALK SHIELD INVIS UPGRADE DOES NOT MAKE YOU INVIS (BUT STILL MAKES YOU INVULNERABLE AND FAST)
 
 Bug fixes and shizzle
+

@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class Hook : MonoBehaviour {
+public class Hook : NetworkBehaviour
+{
 	public LineRenderer lineRenderer;
 	public Spell spell;
 	public float speed = 50;
@@ -14,65 +16,50 @@ public class Hook : MonoBehaviour {
 	bool hasHooked = false;
 	bool pulling = false;
 	bool invulnerability = false;
+    
+	void Start ()
+    {
+        AudioSource.PlayClipAtPoint(cast, transform.position);
+        if (!isServer)
+            return;
 
-	// Use this for initialization
-	void Start () {
-		Vector2 aimPos = spell.aimPoint;
+        Vector2 aimPos = spell.aimPoint;
 		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 		string ownerName = spell.owner;
 		foreach(GameObject player in players)
 		{
-			string playerName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
+			string playerName = player.GetComponent<SpellCasting>().playerName;
 			
 			if(ownerName == playerName)
 			{
 				owner = player;
-				((SpellCasting)player.GetComponent ("SpellCasting")).isHooking = true;
+				player.GetComponent<SpellCasting>().isHooking = true;
 				owner.SendMessage("SetHook", gameObject);
 				break;
 			}
 		}
 		spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
 		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * 2 * Time.deltaTime * 60;
-		if(owner.GetComponent<NetworkView>().isMine)
-		{
-			Invoke ("TimeOut", 1f);
-		}
-		AudioSource.PlayClipAtPoint(cast, transform.position);
+		Invoke ("TimeOut", 1f);
 
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-			if(upgrading.hookDmg.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.hookDmg.currentLevel);
-				
-				if(upgrading.hookPull.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("ActivatePull", RPCMode.All);
-				}
-			}
+        IncreaseDmg(spell.upgrades.hookDmg);
+        if (spell.upgrades.hookPull > 0)
+            ActivatePull();
 
-			if(upgrading.hookInvu.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("ActivateInvu", RPCMode.All);
-			}
-		}
+        if (spell.upgrades.hookInvu > 0)
+            ActivateInvu();
 	}
-
-	[RPC]
+    
 	void IncreaseDmg(int level)
 	{
 		spell.damage += 1.5f * level;
 	}
-
-	[RPC]
+    
 	void ActivatePull()
 	{
 		pulling = true;
 	}
-
-	[RPC]
+    
 	void ActivateInvu()
 	{
 		invulnerability = true;
@@ -80,22 +67,24 @@ public class Hook : MonoBehaviour {
 
 	void TimeOut()
 	{
-		if(GetComponent<NetworkView>().isMine)
-		{
-			((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
-			owner.SendMessage("ResetHook");
-			Network.Destroy (gameObject);
-		}
+		owner.GetComponent<SpellCasting>().isHooking = false;
+		owner.SendMessage("ResetHook");
+		Destroy (gameObject);
 	}
 	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
+        if (!isServer)
+            return;
+
 		lineRenderer.SetPosition (0, owner.transform.position);
-		if(hookedObject == null)
+        RpcLineRenderer(0, owner.transform.position);
+        if (hookedObject == null)
 		{
 			transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 			lineRenderer.SetPosition(1, transform.position);
-		}
+            RpcLineRenderer(1, transform.position);
+        }
 		else
 		{
 			if(pulling)
@@ -103,115 +92,86 @@ public class Hook : MonoBehaviour {
 				hookSpeed += 0.85f;
 				Vector3 dir = Vector3.Normalize(owner.transform.position - hookedObject.transform.position);
 				
-				if(hookedObject.GetComponent<NetworkView>().isMine)
-				{
-					hookedObject.transform.position += dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60;
-				}
+				hookedObject.GetComponent<Movement>().RpcMove(dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60);
+				
 				if(Vector3.Distance (owner.transform.position, hookedObject.transform.position) < 1.8f)
 				{
-					if(hookedObject.GetComponent<NetworkView>().isMine)
-					{
-						Debug.Log ("I am complete!");
-
-						((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
-						Network.Destroy (gameObject);
-					}
+					owner.GetComponent<SpellCasting>().isHooking = false;
+					Destroy (gameObject);
 				}
 			}
 			else
 			{
 				if(invulnerability && !owner.GetComponent<DamageSystem>().invulnerable)
 				{
-					Debug.Log ("I should be invulnerable");
 					owner.GetComponent<DamageSystem>().Invulnerability(0.5f);
 				}
 				hookSpeed += 0.85f;
 				Vector3 dir = Vector3.Normalize(owner.transform.position - hookedObject.transform.position);
 				
-				if(owner.GetComponent<NetworkView>().isMine)
-				{
-					owner.transform.position -= dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60;
-				}
-
+				owner.GetComponent<Movement>().RpcMove(-dir / GlobalConstants.unitScaling * hookSpeed * Time.deltaTime * 60);
+				
 				if(Vector3.Distance (owner.transform.position, hookedObject.transform.position) < 1.8f)
 				{
-					if(owner.GetComponent<NetworkView>().isMine)
+					if(hookedObject.tag == "Player")
 					{
-						Debug.Log ("I am complete!");
-						if(hookedObject.tag == "Player")
-						{
-							hookedObject.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
-							//hookedObject.GetComponent<DamageSystem>().Damage (spell.damage, spell.knockFactor, owner.transform.position);
-						}
-						((SpellCasting)owner.GetComponent ("SpellCasting")).isHooking = false;
-						Network.Destroy (gameObject);
+						hookedObject.GetComponent<DamageSystem>().Damage (spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
 					}
+					owner.GetComponent<SpellCasting>().isHooking = false;
+					Destroy (gameObject);
 				}
 			}
 			lineRenderer.SetPosition(1, hookedObject.transform.position);
+            RpcLineRenderer(1, hookedObject.transform.position);
 			transform.position = hookedObject.transform.position;
 		}
 		
-		if(hasHooked && hookedObject == null && owner.GetComponent<NetworkView>().isMine)
+		if(hasHooked && hookedObject == null)
 		{
 			TimeOut ();
 		}
-		
 	}
+
+    [ClientRpc]
+    void RpcLineRenderer(int index, Vector3 pos)
+    {
+        lineRenderer.SetPosition(index, pos);
+    }
 	
 	void OnTriggerEnter2D(Collider2D other)
 	{
-		if(GetComponent<NetworkView>().isMine)
+        if (!isServer)
+            return;
+
+		if(hookedObject == null)
 		{
-			if(hookedObject == null)
+			if(other.CompareTag("Player"))
 			{
-				if(other.CompareTag("Player"))
-				{
-					DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
-					if(spell.team != damageSystem.Team() && !other.GetComponent<SpellCasting>().isShielding)
-					{
-						hookedObject = other.gameObject;
-						CancelInvoke("TimeOut");
-						AudioSource.PlayClipAtPoint(hit, transform.position);
-						hasHooked = true;
-						string playerName = ((SpellCasting)other.gameObject.GetComponent ("SpellCasting")).playerName;
-						
-						GetComponent<NetworkView>().RPC ("SyncHooked", RPCMode.All, playerName);
-						if(pulling && hookedObject.tag == "Player")
-						{
-							hookedObject.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
-						}
-					}
-				}
-				if(other.CompareTag("Obstacle"))
+				DamageSystem damageSystem = (DamageSystem)other.GetComponent ("DamageSystem");
+				if(spell.team != damageSystem.Team() && !other.GetComponent<SpellCasting>().isShielding)
 				{
 					hookedObject = other.gameObject;
 					CancelInvoke("TimeOut");
 					AudioSource.PlayClipAtPoint(hit, transform.position);
 					hasHooked = true;
+					string playerName = ((SpellCasting)other.gameObject.GetComponent ("SpellCasting")).playerName;
+						
+					//GetComponent<NetworkView>().RPC ("SyncHooked", RPCMode.All, playerName);
+					if(pulling && hookedObject.tag == "Player")
+					{
+                        hookedObject.GetComponent<DamageSystem>().Damage(spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
+						//hookedObject.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, spell.knockFactor, owner.transform.position, spell.owner);
+					}
 				}
 			}
-		}
-	}
-	
-	[RPC]
-	void SyncHooked(string playerName)
-	{
-		Debug.Log ("Syncing hook! " + playerName);
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		foreach(GameObject player in players)
-		{
-			string otherName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			Debug.Log ("Player name is: " + otherName);
-			if(otherName == playerName)
+			if(other.CompareTag("Obstacle"))
 			{
-				Debug.Log ("Set hooked to: " + otherName);
-				hookedObject = player;
-				Debug.Log(hookedObject);
-				return;
+				hookedObject = other.gameObject;
+				CancelInvoke("TimeOut");
+				AudioSource.PlayClipAtPoint(hit, transform.position);
+				hasHooked = true;
 			}
 		}
 	}
-	
 }
 

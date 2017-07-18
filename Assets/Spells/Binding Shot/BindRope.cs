@@ -5,30 +5,18 @@ public class BindRope : MonoBehaviour {
 	Transform boundTo;
 	Vector3 boundPos;
 	public LineRenderer lineRenderer;
-	// Use this for initialization
-	void Start () {
-
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		lineRenderer.SetPosition (0, boundTo.position);
-		lineRenderer.SetPosition (1, boundPos);
-	}
-
-	[RPC]
-	void SetKill(float duration)
+    
+	public void SetKill(float duration)
 	{
 		Invoke ("KillSelf", duration);
 	}
 
 	void KillSelf()
 	{
-		Network.Destroy(gameObject);
+		Destroy(gameObject);
 	}
-
-	[RPC]
-	void SetBinds(Vector3 bindPos, string bindTo)
+    
+	public void SetBinds(Vector3 bindPos, string bindTo)
 	{
 		boundPos = bindPos;
 
@@ -39,8 +27,9 @@ public class BindRope : MonoBehaviour {
 			if(spell.playerName == bindTo)
 			{
 				boundTo = player.transform;
+                lineRenderer.SetPosition(0, transform.position);
+                lineRenderer.SetPosition(1, player.transform.position);
 			}
 		}
 	}
-
 }

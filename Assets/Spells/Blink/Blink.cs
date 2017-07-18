@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class Blink : MonoBehaviour {
+public class Blink : NetworkBehaviour {
 	public Spell spell;
 	public float speed = 50;
 	public GameObject owner;
@@ -17,56 +18,51 @@ public class Blink : MonoBehaviour {
 
 	ArrayList playersHit = new ArrayList();
 
-	// Use this for initialization
-	void Start () {
+    private bool stopped = false;
+    
+	void Start ()
+    {
+        AudioSource.PlayClipAtPoint(cast, transform.position);
+        if (!isServer)
+            return;
+
 		Vector2 aimPos = spell.aimPoint;
 		string ownerName = spell.owner;
 		players = GameObject.FindGameObjectsWithTag("Player");
 		foreach(GameObject player in players)
 		{
-			string playerName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			Debug.Log (playerName);
-			if(ownerName == playerName)
+			string playerName = player.GetComponent<SpellCasting>().playerName;
+			if(ownerName.Equals(playerName))
 			{
 				owner = player;
+                RpcSetOwner(owner);
 				break;
 			}
-		}
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-			if(upgrading.blinkDmg.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("IncreaseDmg", RPCMode.All, upgrading.blinkDmg.currentLevel);
-				
-				if(upgrading.blinkThrust.currentLevel > 0)
-				{
-					thrusting = true;
-				}
-			}
-
-			if(!thrusting)
-			{
-				GetComponent<NetworkView>().RPC ("StartBlink", RPCMode.All);
-			}
-		}
-		spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
-		//transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed;
-		AudioSource.PlayClipAtPoint(cast, transform.position);
+        }
+        IncreaseDmg(spell.upgrades.blinkDmg);
+        if(spell.upgrades.blinkThrust > 0)
+        {
+            thrusting = true;
+        }
+        if (!thrusting)
+        {
+            RpcStartBlink();
+        }
+        spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
 	}
-
-	[RPC]
+    
 	void IncreaseDmg(int level)
 	{
 		spell.damage = 5 + level * 2;
 	}
 	
-	// Update is called once per frame
-	void Update () {
-		if(GetComponent<NetworkView>().isMine)
+	void Update ()
+    {
+		if(isServer && !stopped)
 		{
-			owner.transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y, 0) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
-			transform.position = owner.transform.position;
+            Vector3 velocity = new Vector3(spell.aimDir.x, spell.aimDir.y, 0) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
+            owner.GetComponent<Movement>().RpcMove(velocity);
+			transform.position += velocity;
 			unitsTravelled += 1 / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 			owner.GetComponent<DamageSystem>().Invulnerability(0.1f);
 
@@ -81,12 +77,15 @@ public class Blink : MonoBehaviour {
 						{
 							if(!damageSystem.invulnerable)
 							{
-								damageSystem.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, 10.0f, owner.transform.position, spell.owner);
-								GetComponent<NetworkView>().RPC ("EndBlink", RPCMode.All);
+                                damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
+                                RpcEndBlink();
+                                owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
+                                spell.Invoke("KillSelf", 0.5f);
+                                stopped = true;
+                                //Destroy(gameObject);
 							}
 						}
 					}
-
 				}
 			}
 			else if(spell.damage > 0)
@@ -100,12 +99,11 @@ public class Blink : MonoBehaviour {
 						{
 							if(Vector3.Distance(player.transform.position, owner.transform.position) < 3)
 							{
-								if(!player.GetComponent<SpellCasting>().isShielding && !damageSystem.invulnerable)
+								if(!damageSystem.invulnerable)
 								{
-									Debug.Log ("Damage time!");
-									damageSystem.GetComponent<NetworkView>().RPC ("HookDamage", RPCMode.All, spell.damage, 0.0f, owner.transform.position, spell.owner);
-									playersHit.Add (player);
-									//networkView.RPC ("EndBlink", RPCMode.All);
+                                    Debug.Log ("Damage time!");
+                                    damageSystem.Damage(spell.damage, spell.knockFactor, transform.position, spell.owner);
+                                    playersHit.Add (player);
 								}
 							}
 						}
@@ -115,30 +113,31 @@ public class Blink : MonoBehaviour {
 
 			if(Vector3.Distance(owner.transform.position, spell.aimPoint) < 1f || unitsTravelled > 11)
 			{
-				GetComponent<NetworkView>().RPC ("EndBlink", RPCMode.All);
-			}
+                RpcEndBlink();
+                owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
+                spell.Invoke("KillSelf", 1);
+                stopped = true;
+            }
 
-
-
-
-		}
-
-		//Should be moved back to owner dealing damage
-
-		CreateEffect();
+            CreateEffect();
+        }
 	}
-
-
-		
-
 
 	void CreateEffect()
 	{
-		GameObject.Instantiate(effect, transform.position, Quaternion.identity);
+		GameObject groundEffect = Instantiate(effect, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(groundEffect);
 	}
 	
-	[RPC]
-	void StartBlink()
+    [ClientRpc]
+    void RpcSetOwner(GameObject o)
+    {
+        Debug.Log("setting owner");
+        owner = o;
+    }
+
+	[ClientRpc]
+	void RpcStartBlink()
 	{
 		Debug.Log ("Blinkin'");
 		owner.GetComponent<Collider2D>().enabled = false;
@@ -151,9 +150,12 @@ public class Blink : MonoBehaviour {
 		}
 	}
 	
-	[RPC]
-	void EndBlink()
+	[ClientRpc]
+	void RpcEndBlink()
 	{
+        if (owner.GetComponent<DamageSystem>().isDead)
+            return;
+
 		Debug.Log ("Ending blink");
 		owner.GetComponent<Collider2D>().enabled = true;
 
@@ -163,10 +165,5 @@ public class Blink : MonoBehaviour {
 		{
 			renderer.enabled = true;
 		}
-		if(GetComponent<NetworkView>().isMine)
-		{
-			owner.GetComponent<DamageSystem>().knockback = Vector3.zero;
-		}
-		Destroy(gameObject);
 	}
 }

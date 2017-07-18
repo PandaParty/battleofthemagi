@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using System.Collections;
 
-public class Movement : MonoBehaviour {
+public class Movement : NetworkBehaviour {
 	#region Fields
 
 	public float speed = 5.0f;
 	private float maxSpeed = 20.0f;
 
 	public SpellCasting spellCasting;
+    public DamageSystem damageSystem;
 
 	public Vector3 bound;
 
@@ -35,17 +37,18 @@ public class Movement : MonoBehaviour {
 
 	}
 	#endregion
-	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
 		oldSpeed = speed;
 	}
 
-	public void SpeedBoost(float boost, float duration)
+    [ClientRpc]
+	public void RpcSpeedBoost(float boost, float duration)
 	{
 		CancelInvoke("EndSpeedBoost");
 		Invoke ("EndSpeedBoost", duration);
 		//oldSpeed = speed;
-		speed *= boost;
+		speed = oldSpeed * boost;
 	}
 
 	void EndSpeedBoost()
@@ -58,141 +61,83 @@ public class Movement : MonoBehaviour {
 		//bound = boundTo;
 	}
 
-	public void Bound(float duration, float length)
+    [ClientRpc]
+	public void RpcBound(float duration, float length)
 	{
 		bound = transform.position;
-		length = length;
+		this.length = length;
 		Invoke ("RemoveBound", duration);
 	}
-
-	[RPC]
-	void HolePos(Vector3 pos)
+    
+    [ClientRpc]
+    public void RpcReset()
 	{
-		holePos = pos;
-		if(!spellCasting.isSilenced)
-		{
-			spellCasting.Silence(0.2f);
-		}
-	}
+        if (!isLocalPlayer)
+            return;
 
-	public void Reset()
-	{
 		Vector3 spawnPos = Vector3.zero;
 		switch(spellCasting.team)
 		{
-		case 1: spawnPos = new Vector3(-9, 0, 0);
+		case 1: spawnPos = new Vector3(-11, 0, 0);
 			break;
-		case 2: spawnPos = new Vector3(9, 0, 0);
-			break;
-		case 3: spawnPos = new Vector3(0, -9, 0);
-			break;
-		case 4: spawnPos = new Vector3(0, 9, 0);
+		case 2: spawnPos = new Vector3(11, 0, 0);
 			break;
 		}
 		transform.position = spawnPos;
 	}
+    
+	void Update ()
+    {
+        if (!isLocalPlayer)
+            return;
 
-	// Update is called once per frame
-	void Update () {
-		if(GetComponent<NetworkView>().isMine)
-		{
-			if(holePos != Vector3.zero)
-			{
-				transform.position += Vector3.Normalize(holePos - transform.position) / GlobalConstants.unitScaling * 3;
-			}
-			else
-			{
-				if(spellCasting.blackHoling)
-				{
-					Debug.Log("Currently black holing");
-				}
-				if(!spellCasting.isCasting && !GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game && !spellCasting.blackHoling)
-				{
-					Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
-					movement = Vector3.Normalize(movement);
-					if(bound == Vector3.zero)
-					{
-						transform.position += (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60;
-					}
-					else
-					{
-						Vector3 newPos = transform.position + (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60;
-						
-						if(Vector3.Distance(bound, newPos) < length)
-						{
-							transform.position = newPos;
-						}
-					}
-					
-					Vector3 aimDir = Input.mousePosition;
-					Vector3 pos = Camera.main.WorldToScreenPoint(transform.position);
-					aimDir.x = aimDir.x - pos.x;
-					aimDir.y = aimDir.y - pos.y;
-					float angle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg;
-					transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle + 135 + 90));
-				}
-				else if(Input.GetKeyDown (KeyCode.LeftShift))
-				{
-					spellCasting.StopCasting();
-				}
-			}
-//			else
-//			{
-//				if(Input.GetKeyDown(KeyCode.W)
-//				   || Input.GetKeyDown (KeyCode.A)
-//				   || Input.GetKeyDown (KeyCode.S)
-//				   || Input.GetKeyDown (KeyCode.D))
-//				{
-//					spellCasting.StopCasting();
-//				}
-//			}
-		}
-		GameObject.Find ("CooldownInfo").SendMessage ("UpdatePlayer1Pos", transform.position);
-		transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+        GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        if (!GlobalConstants.isFrozen && GameHandler.state == GameHandler.State.Game)
+        {
+            Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0);
+            movement = Vector3.Normalize(movement);
+            if (bound == Vector3.zero)
+            {
+                if(!spellCasting.isCasting)
+                {
+                    transform.position += (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60;
+                }
+                transform.position += damageSystem.knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
+            }
+            else
+            {
+                Vector3 newPos = transform.position + (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60 + damageSystem.knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60; ;
+                
+                if (Vector3.Distance(bound, newPos) < length)
+                {
+                    transform.position = newPos;
+                }
+            }
+
+            Vector3 aimDir = Input.mousePosition;
+            Vector3 pos = Camera.main.WorldToScreenPoint(transform.position);
+            aimDir.x = aimDir.x - pos.x;
+            aimDir.y = aimDir.y - pos.y;
+            float angle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle + 135 + 90));
+        }
+
+        //GameObject.Find ("CooldownInfo").SendMessage ("UpdatePlayer1Pos", transform.position);
+        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
 	}
 
-	void LimitScreen()
-	{
-		//Horizontal screen limits
-		if(transform.position.x < -GlobalConstants.screenSize.x)
-		{
-			float offset = transform.position.x + GlobalConstants.screenSize.x;
-			transform.position += new Vector3(-offset, 0, 0);
-		}
-		else if(transform.position.x > GlobalConstants.screenSize.x)
-		{
-			float offset = transform.position.x - GlobalConstants.screenSize.x;
-			transform.position += new Vector3(-offset, 0, 0);
-		}
-
-		//Vertical screen limits
-		if(transform.position.y < -GlobalConstants.screenSize.y)
-		{
-			float offset = transform.position.y + GlobalConstants.screenSize.y;
-			transform.position += new Vector3(0, -offset, 0);
-		}
-		else if(transform.position.y > GlobalConstants.screenSize.y)
-		{
-			float offset = transform.position.y - GlobalConstants.screenSize.y;
-			transform.position += new Vector3(0, -offset, 0);
-		}
-	}
-
+    [ClientRpc]
+    public void RpcMove(Vector3 velocity)
+    {
+        Debug.Log("I should move");
+        transform.position += velocity;
+        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+    }
+    
 	void RemoveBound()
 	{
 		bound = Vector3.zero;
 	}
-
-	void Invis()
-	{
-		SpeedBoost(1.5f, 4f);
-	}
-
-	void EndInvis()
-	{
-		EndSpeedBoost();
-	}
-
 }
 
 public static class GlobalConstants
@@ -201,7 +146,7 @@ public static class GlobalConstants
 	public static float unitScaling = 135.0f;
 	public static Vector2 screenSize = new Vector2(12.8f, 7.1f);
 
-	public static bool isFrozen = true;
+	public static bool isFrozen = false;
 
 	public static Vector3 RotateZ(Vector3 v, float angle )
 		

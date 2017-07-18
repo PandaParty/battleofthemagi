@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class WindWalkShield : MonoBehaviour {
-
+public class WindWalkShield : NetworkBehaviour
+{
 	public Spell spell;
 	public GameObject owner;
 	public GameObject shieldHit;
@@ -11,16 +12,15 @@ public class WindWalkShield : MonoBehaviour {
 	public AudioClip hit;
 
 	public float invisDuration;
-
-
+    
 	float damageBoost = 1;
-
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		AudioSource.PlayClipAtPoint(cast, transform.position);
+
+
 		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		Debug.Log (players.Length);
 		string ownerName = spell.owner;
 		foreach(GameObject player in players)
 		{
@@ -31,35 +31,23 @@ public class WindWalkShield : MonoBehaviour {
 				owner = player;
 				break;
 			}
-		}
+        }
 
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-			if(upgrading.windShieldDuration.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("IncreaseDuration", RPCMode.All, upgrading.windShieldDuration.currentLevel);
-				
-				if(upgrading.windShieldDamage.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("ActivateDamage", RPCMode.All);
-				}
-			}
+        if (!isServer)
+            return;
 
-			if(upgrading.windShieldInvis.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC("ActivateInvis", RPCMode.All);
-			}
-		}
+        IncreaseDuration(spell.upgrades.windShieldDuration);
+        if (spell.upgrades.windShieldDamage > 0)
+            ActivateDamage();
+
+        if (spell.upgrades.windShieldInvis > 0)
+            ActivateInvis();
 
 		owner.SendMessage("IsShielding");
 		owner.GetComponent<SpellCasting>().Invoke ("StopShielding", duration);
 		spell.Invoke ("KillSelf", duration);
+    }
 
-
-	}
-
-	[RPC]
 	void IncreaseDuration(int newDur)
 	{
 		invisDuration += newDur * 0.5f;
@@ -69,152 +57,143 @@ public class WindWalkShield : MonoBehaviour {
 		spell.CancelInvoke("KillSelf");
 		spell.Invoke ("KillSelf", duration);
 	}
-
-	[RPC]
+    
 	void ActivateDamage()
 	{
 		damageBoost = 1.35f;
 	}
-
-	[RPC]
+    
 	void ActivateInvis()
 	{
-		GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-		Debug.Log (players.Length);
-		string ownerName = spell.owner;
-		foreach(GameObject player in players)
-		{
-			string playerName = ((SpellCasting)player.GetComponent ("SpellCasting")).playerName;
-			
-			if(ownerName == playerName)
-			{
-				owner = player;
-				break;
-			}
-		}
-		Invis ();
-		owner.GetComponent<DamageSystem>().Invulnerability(invisDuration);
+        StartInvis();
 		owner.GetComponent<SpellCasting>().StopShielding();
 	}
-
-	// Update is called once per frame
-	void Update () {
+    
+	void Update ()
+    {
 		transform.position = owner.transform.position;
 	}
 
 	void OnTriggerEnter2D(Collider2D other)
 	{
-		if(other.GetComponent<NetworkView>().isMine)
+        if (!isServer)
+            return;
+
+		if(other.CompareTag ("Spell"))
 		{
-			if(other.CompareTag ("Spell"))
+			Spell otherSpell = (Spell)other.GetComponent("Spell");
+			if(spell.team != otherSpell.team)
 			{
-				Spell otherSpell = (Spell)other.GetComponent("Spell");
-				if(spell.team != otherSpell.team)
+				if(otherSpell.type == Spell.spellType.Projectile)
 				{
-					if(otherSpell.type == Spell.spellType.Projectile)
-					{
-						otherSpell.damage = 0;
-						Network.Instantiate(shieldHit, other.transform.position, Quaternion.identity, 0);
-						Network.Destroy(other.gameObject);
+					otherSpell.damage = 0;
+					GameObject hitEffect = Instantiate(shieldHit, other.transform.position, Quaternion.identity);
+                    NetworkServer.Spawn(hitEffect);
 
-						GetComponent<NetworkView>().RPC("Invis", RPCMode.All);
+                    Destroy(other.gameObject);
+                    StartInvis();
+					//GetComponent<NetworkView>().RPC("Invis", RPCMode.All);
 
-					}
 				}
 			}
 		}
 	}
 
-	void LocalInvis()
+    void StartInvis()
+    {
+        spell.CancelInvoke("KillSelf");
+        
+        gameObject.GetComponent<Collider2D>().enabled = false;
+        owner.GetComponent<Movement>().RpcSpeedBoost(1.75f, invisDuration);
+        RpcInvis();
+        Invoke("EndInvis", invisDuration);
+    }
+
+	void TeamInvis()
 	{
-		Debug.Log ("Local invis!");
-		Invoke ("EndInvis", invisDuration);
-		spell.CancelInvoke("KillSelf");
-		
-		Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = false;
-		}
-		
 		SpriteRenderer[] sRenderers = owner.GetComponentsInChildren<SpriteRenderer>();
 		
 		foreach(SpriteRenderer renderer in sRenderers)
 		{
 			renderer.color = new Color(1, 1, 1, 0.5f);
 		}
-		
-		gameObject.GetComponent<Collider2D>().enabled = false;
+        
+        if (damageBoost > 0)
+        {
+            owner.GetComponent<SpellCasting>().RpcDamageBoost(damageBoost, invisDuration);
+        }
+    }
 
-		owner.GetComponent<Movement>().SpeedBoost(1.75f, invisDuration);
-		if(damageBoost > 0)
-		{
-			owner.GetComponent<SpellCasting>().DamageBoost(damageBoost, invisDuration);
-		}
-		owner.GetComponent<NetworkView>().RPC ("DmgInvis", RPCMode.All);
-	}
+    [ClientRpc]
+    void RpcInvis()
+    {
+        AudioSource.PlayClipAtPoint(hit, transform.position);
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        string ownerName = spell.owner;
+        int localTeam = 0;
+        foreach (GameObject player in players)
+        {
+            string playerName = ((SpellCasting)player.GetComponent("SpellCasting")).playerName;
+            if (ownerName == playerName)
+            {
+                owner = player;
+            }
+            if(player.GetComponent<NetworkIdentity>().isLocalPlayer)
+            {
+                localTeam = player.GetComponent<SpellCasting>().team;
+            }
+        }
 
-	[RPC]
-	void Invis()
-	{
-		Debug.Log ("Starting invis!");
-		AudioSource.PlayClipAtPoint(hit, transform.position);
-		if(GetComponent<NetworkView>().isMine)
-		{
-			LocalInvis();
-			return;
-		}
-		spell.CancelInvoke("KillSelf");
-		Invoke ("EndInvis", invisDuration);
+        owner.GetComponent<DamageSystem>().DmgInvis();
 
-		Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = false;
-		}
+        Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
 
-		Debug.Log (owner.GetComponent<SpellCasting>().playerName);
+        foreach (Renderer renderer in renderers)
+        {
+            renderer.enabled = false;
+        }
 
-		renderers = owner.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = false;
-		}
+        
+        if (spell.team == localTeam)
+        {
+            TeamInvis();
+            return;
+        }
 
-		gameObject.GetComponent<Collider2D>().enabled = false;
-		
-		Debug.Log ("Invis Started!");
-		owner.SendMessage ("Invis");
-	}
+        renderers = owner.GetComponentsInChildren<Renderer>();
+
+        foreach (Renderer renderer in renderers)
+        {
+            renderer.enabled = false;
+            //renderer.color = new Color(1, 1, 1, 0.5f);
+        }
+        owner.GetComponent<SpellCasting>().Invis();
+    }
+
+    [ClientRpc]
+    void RpcEndInvis()
+    {
+        Debug.Log("End invis!");
+        Renderer[] renderers = owner.GetComponentsInChildren<Renderer>();
+
+        foreach (Renderer renderer in renderers)
+        {
+            renderer.enabled = true;
+        }
+
+        SpriteRenderer[] sRenderers = owner.GetComponentsInChildren<SpriteRenderer>();
+
+        foreach (SpriteRenderer sRend in sRenderers)
+        {
+            sRend.color = new Color(1, 1, 1, 1);
+        }
+
+        owner.SendMessage("EndInvis");
+    }
 
 	void EndInvis()
 	{
-		Debug.Log ("End invis!");
-		Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = true;
-		}
-
-		renderers = owner.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = true;
-		}
-
-		SpriteRenderer[] sRenderers = owner.GetComponentsInChildren<SpriteRenderer>();
-		
-		foreach(SpriteRenderer sRend in sRenderers)
-		{
-			sRend.color = new Color(1, 1, 1, 1);
-		}
-
-		owner.SendMessage ("EndInvis");
-		spell.KillSelf();
+        RpcEndInvis();
+        spell.Invoke("KillSelf", 1);
 	}
 }

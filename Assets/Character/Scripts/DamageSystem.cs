@@ -1,15 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Networking;
 
-public class DamageSystem : MonoBehaviour {
+[NetworkSettings(sendInterval = 0)]
+public class DamageSystem : NetworkBehaviour
+{
 	public SpellCasting spellCasting;
 	public Movement movement;
+    [SyncVar]
 	float health = 150;
 	float maxHealth;
+    [SyncVar]
 	public Vector3 knockback;
 	
 	public float damageHealed = 0;
+    [SyncVar]
 	public float damageTaken = 0;
 	
 	public Texture healthBar;
@@ -42,6 +48,9 @@ public class DamageSystem : MonoBehaviour {
 	float lavaAmp = 1;
 	
 	float amp = 1;
+    
+    private int directAmpCount = 0;
+    private float directAmpAmount = 1.0f;
 
 	float absorb = 0;
 
@@ -54,21 +63,22 @@ public class DamageSystem : MonoBehaviour {
 		return spellCasting.team;
 	}
 	
-	[RPC]
-	public void StartReset()
-	{
-		Reset ();
-		spellCasting.Reset();
-		movement.Reset();
+    [Command]
+	public void CmdFullReset()
+    {
+        health = maxHealth;
+
+        damageTaken = 0;
+        damageHealed = 0;
+        RpcReset ();
+		spellCasting.RpcReset();
+		movement.RpcReset();
 	}
 	
-	void Reset()
+    [ClientRpc]
+	void RpcReset()
 	{
 		Debug.Log ("Resetting");
-		health = maxHealth;
-
-		damageTaken = 0;
-		damageHealed = 0;
 		
 		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
 		
@@ -86,11 +96,11 @@ public class DamageSystem : MonoBehaviour {
 			renderer.enabled = true;
 		}
 
-		PreRespawn();
+		Invoke("Respawn", 3);
 	}
 	
-	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
 		maxHealth = health;
 	}
 	
@@ -129,10 +139,10 @@ public class DamageSystem : MonoBehaviour {
 		absorb = 0;
 		Network.Destroy(currentShieldEffect);
 	}
-
-	// Update is called once per frame
-	void Update () {
-		if(GetComponent<NetworkView>().isMine && !isDead && !invulnerable)
+    
+	void Update ()
+    {
+		if(isServer && !isDead && !invulnerable)
 		{
 			if(absorb > 0)
 			{
@@ -149,18 +159,6 @@ public class DamageSystem : MonoBehaviour {
 			if(damagedByCountdown <= 0)
 			{
 				lastDamagedBy = "";
-			}
-			if(movement.bound == Vector3.zero)
-			{
-				transform.position += knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
-			}
-			else
-			{
-				Vector3 newPos = transform.position + knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
-				if(Vector3.Distance(newPos, movement.bound) < movement.length)
-				{
-					transform.position = newPos;
-				}
 			}
 			
 			if(knockback.magnitude > 80)
@@ -218,7 +216,7 @@ public class DamageSystem : MonoBehaviour {
 			
 			foreach(Dot dot in removeList)
 			{
-				Network.Destroy(dot.effect);
+				Destroy(dot.effect);
 				dotList.Remove(dot);
 			}
 			
@@ -251,24 +249,12 @@ public class DamageSystem : MonoBehaviour {
 			
 			foreach(Hot hot in removeHots)
 			{
-				Network.Destroy(hot.effect);
+				Destroy(hot.effect);
 				hotList.Remove(hot);
 			}
 		}
 	}
-	
-	[RPC]
-	void LavaAmplify(float damageIncrease, float duration)
-	{
-		lavaAmp = 1 + damageIncrease;
-		Invoke("EndLavaAmplify", duration);
-	}
-	
-	void EndLavaAmplify()
-	{
-		lavaAmp = 1;
-	}
-	
+    
 	public void Amplify(float damageIncrease, float duration)
 	{
 		amp = 1 + damageIncrease;
@@ -282,7 +268,7 @@ public class DamageSystem : MonoBehaviour {
 	
 	void OnGUI()
 	{
-		if(!isInvis && GameHandler.state != GameHandler.State.Upgrade)
+		if(!isDead && !isInvis && GameHandler.state != GameHandler.State.Upgrade)
 		{
 			float currentHealth = health / maxHealth;
 			float currentDamageTaken = (damageTaken * 0.5f) / maxHealth;
@@ -292,13 +278,14 @@ public class DamageSystem : MonoBehaviour {
 			//GUI.DrawTexture (new Rect(playerPos.x + 60 - currentDamageTaken * 120, Screen.height - playerPos.y - 59, 2, 10), vertLine);
 		}
 	}
-
-	[RPC]
-	void DmgInvis()
+    
+	public void DmgInvis()
 	{
-		Debug.Log ("Damage system invis!");
+        Debug.Log ("Damage system invis!");
 		isInvis = true;
-		foreach(Hot hot in hotList)
+        if (!isServer)
+            return;
+        foreach (Hot hot in hotList)
 		{
 			Debug.Log ("Heres a hot!");
 			hot.effect.SetActive(false);
@@ -308,12 +295,23 @@ public class DamageSystem : MonoBehaviour {
 			Debug.Log ("Heres a dot!");
 			dot.effect.SetActive(false);
 		}
+        GameObject[] powerupEffects = GameObject.FindGameObjectsWithTag("PowerUpEffect");
+        foreach(GameObject p in powerupEffects)
+        {
+            if(p.GetComponent<FollowPlayer>().player == gameObject)
+            {
+                p.GetComponent<ParticleSystem>().Stop(false, ParticleSystemStopBehavior.StopEmitting);
+            }
+        }
 	}
 
-	void EndInvis()
+	public void EndInvis()
 	{
 		isInvis = false;
-		foreach(Hot hot in hotList)
+
+        if (!isServer)
+            return;
+        foreach (Hot hot in hotList)
 		{
 			hot.effect.SetActive(true);
 		}
@@ -321,7 +319,15 @@ public class DamageSystem : MonoBehaviour {
 		{
 			dot.effect.SetActive(true);
 		}
-	}
+        GameObject[] powerupEffects = GameObject.FindGameObjectsWithTag("PowerUpEffect");
+        foreach (GameObject p in powerupEffects)
+        {
+            if (p.GetComponent<FollowPlayer>().player == gameObject)
+            {
+                p.GetComponent<ParticleSystem>().Play();
+            }
+        }
+    }
 	
 	void SetHook(GameObject _hook)
 	{
@@ -335,13 +341,15 @@ public class DamageSystem : MonoBehaviour {
 	
 	public void AddDot(float dmg, float dur, float tick, string owner, GameObject eff)
 	{
-		GameObject newEffect = (GameObject)Network.Instantiate(eff, transform.position, Quaternion.identity, 0);
+		GameObject newEffect = Instantiate(eff, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(newEffect);
 		dotList.Add (new Dot(dmg, dur, tick, owner, newEffect));
 	}
 	
 	public void AddHot(float heal, float dur, float tick, GameObject eff)
 	{
-		GameObject newEffect = (GameObject)Network.Instantiate(eff, transform.position, Quaternion.identity, 0);
+		GameObject newEffect = Instantiate(eff, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(newEffect);
 		hotList.Add (new Hot(heal, dur, tick, newEffect));
 	}
 	
@@ -356,8 +364,6 @@ public class DamageSystem : MonoBehaviour {
 		invulnerable = false;
 	}
 	
-	
-	
 	public void Damage(float damage, float knockFactor, Vector3 position, string damagedBy)
 	{
 		if(!invulnerable && GameHandler.state == GameHandler.State.Game)
@@ -367,8 +373,18 @@ public class DamageSystem : MonoBehaviour {
 				//return;
 			}
 			if(damage > 0)
-			{
-				if(absorb > damage)
+            {
+                if(damage >= 5)
+                {
+                    //Cause extra damage due to direct amp
+                    if (directAmpCount > 0)
+                    {
+                        directAmpCount--;
+                        damage *= directAmpAmount;
+                        knockFactor *= directAmpAmount;
+                    }
+                }
+                if (absorb > damage)
 				{
 					absorb -= damage;
 				}
@@ -396,25 +412,29 @@ public class DamageSystem : MonoBehaviour {
 			}
 			Vector3 knockDir = Vector3.Normalize(transform.position - position);
 			knockback += knockDir * knockFactor * amp * (8f + (maxHealth - health) / (maxHealth/25)) / 1.8f;
-			GetComponent<NetworkView>().RPC ("UpdateHealth", RPCMode.OthersBuffered, health, damageTaken);
 			
-			if(health <= 40 && !playedLastword)
-			{
-				AudioSource.PlayClipAtPoint(lastWord, transform.position);
-				playedLastword = true;
-			}
+			//if(health <= 40 && !playedLastword)
+			//{
+			//	AudioSource.PlayClipAtPoint(lastWord, transform.position);
+			//	playedLastword = true;
+			//}
+
 			GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 			foreach(GameObject player in players)
 			{
 				if(player.GetComponent<SpellCasting>().playerName == damagedBy)
 				{
-					player.GetComponent<NetworkView>().RPC("IncreaseDamageDone", RPCMode.All, damage);
+					//player.GetComponent<NetworkView>().RPC("IncreaseDamageDone", RPCMode.All, damage);
+                    
 					break;
 				}
 			}
 			if(damage >= 5)
 			{
-				spellCasting.EndChannelingPowerUp();
+                if(isServer)
+                {
+                    spellCasting.RpcEndChannelingPowerUp();
+                }
 				if(movement.bound != Vector3.zero)
 				{
 					movement.bound = Vector3.zero;
@@ -425,53 +445,35 @@ public class DamageSystem : MonoBehaviour {
 					spellCasting.isHooking = false;
 					hook = null;
 				}
+                RpcStopCasting();
 			}
 			
 			if(damage >= 5 || inLava)
 			{
 				if(health <= 0)
 				{
-					if(inLava)
-					{
-						//GA.API.Design.NewEvent("Dead:Lava:In");
-					}
-					else
-					{
-						//GA.API.Design.NewEvent("Dead:Lava:Out");
-					}
-					//GA.API.Design.NewEvent("DeathCount:Player:" + spellCasting.playerName);
-					//GA.API.Design.NewEvent("Player:" + spellCasting.playerName + ":KD", 0);
-					//GA.API.Design.NewEvent("Player:" + lastDamagedBy + ":KD", 1);
-					//GA.API.Design.NewEvent("KillCount:Player:" + lastDamagedBy);
 					isDead = true;
 					spellCasting.isDead = true;
 					knockback = Vector3.zero;
-					lives --;
-					spellCasting.SendMessage("Dead");
-					dotList.Clear();
-					damageTaken = 0;
-					damageHealed = 0;
-					invulnerable = true;
-					GetComponent<NetworkView>().RPC ("Hide", RPCMode.AllBuffered);
-					AudioSource.PlayClipAtPoint(dead, transform.position);
-					if(lives > 0)
-					{
-						Invoke ("SelfRespawn", 5);
-					}
-					else
-					{
-						GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
-					}
-					Debug.Log (lastDamagedBy);
-					foreach(GameObject player in players)
-					{
-						if(player.GetComponent<SpellCasting>().playerName == lastDamagedBy)
-						{
-							//player.networkView.RPC("IncreaseGold", RPCMode.All, 20);
-							break;
-						}
-					}
-				}
+                    lives--;
+                    spellCasting.RpcDead();
+                    dotList.Clear();
+                    hotList.Clear();
+                    damageTaken = 0;
+                    damageHealed = 0;
+                    invulnerable = true;
+                    RpcHide();
+                    AudioSource.PlayClipAtPoint(dead, transform.position);
+                    GameObject.Find("GameHandler").GetComponent<GameHandler>().PlayerDead(Team());
+                    //if(lives > 0)
+                    //{
+                    //	Invoke ("SelfRespawn", 5);
+                    //}
+                    //else
+                    //{
+                    //	GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
+                    //}
+                }
 			}
 			
 			if(damage < 0)
@@ -480,6 +482,22 @@ public class DamageSystem : MonoBehaviour {
 			}
 		}
 	}
+
+    [ClientRpc]
+    void RpcStopCasting()
+    {
+        spellCasting.CmdEndChannelingPowerUp();
+        if (movement.bound != Vector3.zero)
+        {
+            movement.bound = Vector3.zero;
+        }
+        if (hook != null)
+        {
+            hook.SendMessage("TimeOut");
+            spellCasting.isHooking = false;
+            hook = null;
+        }
+    }
 	
 	[RPC]
 	void IncreaseGold(int amount)
@@ -490,90 +508,23 @@ public class DamageSystem : MonoBehaviour {
 		}
 	}
 	
-	[RPC]
-	void HookDamage(float damage, float knockFactor, Vector3 position, string owner)
-	{
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Debug.Log ("Time to take some damage!");
-			/*
-			if(health > 0)
-			{
-				health = Mathf.Clamp (health - damage, 0, maxHealth);
-				Vector3 knockDir = Vector3.Normalize(transform.position - position);
-				knockback += knockDir * knockFactor * (0.5f + (maxHealth - health) / (maxHealth/5));
-				networkView.RPC ("UpdateHealth", RPCMode.OthersBuffered, health);
-				if(health <= 0)
-				{
-					isDead = true;
-					lives --;
-					spellCasting.SendMessage("Dead");
-					knockback = Vector3.zero;
-					networkView.RPC ("Hide", RPCMode.AllBuffered);
-					if(lives > 0)
-					{
-						Invoke ("SelfRespawn", 5);
-					}
-					else
-					{
-						GameObject.Find ("GameHandler").SendMessage("PlayerDead", Team ());
-					}
-				}
-			}
-			*/
-			Damage (damage, knockFactor, position, owner);
-		}
-	}
-	
-	void SelfRespawn()
-	{
-		transform.position = Vector3.zero;
-		GetComponent<NetworkView>().RPC ("PreRespawn", RPCMode.AllBuffered);
-	}
-	
-	[RPC]
-	public void PreRespawn()
-	{
-		Renderer[] renderers = gameObject.GetComponentsInChildren<Renderer>();
-		
-		foreach(Renderer renderer in renderers)
-		{
-			renderer.enabled = true;
-		}
-		
-		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
-		
-		foreach(SpriteRenderer renderer in sRenderers)
-		{
-			renderer.color = new Color(1, 1, 1, 0.5f);
-		}
-		
-		health = maxHealth;
-		
-		Invoke ("Respawn", 3);
-	}
-	
 	public void Respawn()
 	{
 		isDead = false;
 		invulnerable = false;
-		spellCasting.SendMessage ("Spawned");
+        health = maxHealth;
+        dotList.Clear();
+        hotList.Clear();
+        spellCasting.Spawned();
 		Debug.Log ("Respawned!");
+        inLava = false;
 		GetComponent<Collider2D>().enabled = true;
 		
-		SpriteRenderer[] sRenderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
-		
-		foreach(SpriteRenderer renderer in sRenderers)
-		{
-			renderer.color = new Color(1, 1, 1, 1);
-		}
-		
-		spellCasting.EndChannelingPowerUp();
-		
+		spellCasting.CmdEndChannelingPowerUp();
 	}
 	
-	[RPC]
-	public void Hide()
+	[ClientRpc]
+	public void RpcHide()
 	{
 		GetComponent<Collider2D>().enabled = false;
 		//Check dis out yo can't hide this shizzle
@@ -592,6 +543,21 @@ public class DamageSystem : MonoBehaviour {
 		health = currentHealth;
 		damageTaken = dmg;
 	}
+
+    public void DirectDamageAmp(float amount, int count, float duration)
+    {
+        directAmpAmount = amount;
+        directAmpCount += count;
+        CancelInvoke("RemoveDirectDamageAmp");
+        Invoke("RemoveDirectDamageAmp", duration);
+    }
+
+    public void RemoveDirectDamageAmp()
+    {
+        directAmpAmount = 1.0f;
+        directAmpCount = 0;
+    }
+
 }
 
 public class Dot

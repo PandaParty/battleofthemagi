@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Networking;
 
-public class HealingWard : MonoBehaviour {
+public class HealingWard : NetworkBehaviour {
 	public Spell spell;
 	public float duration;
 	public float bloomTime;
@@ -16,57 +17,22 @@ public class HealingWard : MonoBehaviour {
 	bool lifeSteals = false;
 	bool damageReduct = false;
 	bool instant = false;
-
-	// Use this for initialization
-	void Start () {
+    
+	void Start ()
+    {
 		SetColor();
 		transform.position = spell.aimPoint;
 		transform.position += new Vector3(0, 0, 1);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 		Invoke ("Bloom", bloomTime);
-		if(GetComponent<NetworkView>().isMine)
-		{
-			Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-			if(upgrading.healingDispel.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("Dispel", RPCMode.All);
-				
-				if(upgrading.healingDispelHeal.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("DispelHeal", RPCMode.All);
-				}
-			}
 
-			if(upgrading.healingDuration.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("Duration", RPCMode.All, upgrading.healingDuration.currentLevel);
-				
-				if(upgrading.healingDamageReduct.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("DamageReduct", RPCMode.All);
-				}
-			}
-			
-			if(upgrading.healingDmg.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("Damages", RPCMode.All, upgrading.healingDmg.currentLevel);
+        Duration(spell.upgrades.healingDuration);
+        if (spell.upgrades.healingDamageReduct > 0)
+            DamageReduct();
 
-				if(upgrading.healingLifesteal.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("Lifesteals", RPCMode.All);
-				}
-			}
-
-			if(upgrading.healingBloom.currentLevel > 0)
-			{
-				GetComponent<NetworkView>().RPC ("BloomTime", RPCMode.All, upgrading.healingBloom.currentLevel);
-				
-				if(upgrading.healingBurst.currentLevel > 0)
-				{
-					GetComponent<NetworkView>().RPC ("Instant", RPCMode.All);
-				}
-			}
-		}
+        BloomTime(spell.upgrades.healingBloom);
+        if (spell.upgrades.healingBurst > 0)
+            Instant();
 	}
 
 	void SetColor()
@@ -86,83 +52,47 @@ public class HealingWard : MonoBehaviour {
 			break;
 		}
 	}
-
-	[RPC]
+    
 	void Duration(int level)
 	{
 		duration += 0.7f * level;
 	}
-
-	[RPC]
+    
 	void DamageReduct()
 	{
 		damageReduct = true;
 	}
-
-	[RPC]
-	void Dispel()
-	{
-		dispels = true;
-	}
-
-	[RPC]
-	void DispelHeal()
-	{
-		dispelHeals = true;
-	}
-
-	[RPC]
-	void Damages(int level)
-	{
-		damages = 0.028f * level;
-	}
-	
-	[RPC]
-	void Lifesteals()
-	{
-		lifeSteals = true;
-	}
-
-	[RPC]
+    
 	void BloomTime(int level)
 	{
 		bloomTime -= 0.2f * level;
 		gameObject.GetComponent<ParticleSystem>().time = 0.7f - bloomTime;
 	}
-
-	[RPC]
+    
 	void Instant()
 	{
 		instant = true;
 	}
 
-	
-	// Update is called once per frame
-	void Update () 
-	{
-		
-	}
-
 	void Bloom()
 	{
+        if (!isServer)
+            return;
+
 		Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, ((CircleCollider2D)GetComponent<Collider2D>()).radius);
 
 		foreach(Collider2D hitCollider in hitColliders)
 		{
-			if(hitCollider.CompareTag("Player") && hitCollider.GetComponent<NetworkView>().isMine)
+			if(hitCollider.CompareTag("Player"))
 			{
 				if(hitCollider.gameObject.GetComponent<SpellCasting>().team == spell.team)
 				{
 					if(!instant)
 					{
 						hitCollider.GetComponent<DamageSystem>().AddHot (spell.damage, duration, 0.0165f, effect);
-						if(dispels)
-						{
-							hitCollider.SendMessage("Dispel", spell.owner);
-						}
 						if(damageReduct)
 						{
-							hitCollider.GetComponent<DamageSystem>().Amplify(0.5f, duration);
+							hitCollider.GetComponent<DamageSystem>().Amplify(-0.5f, duration);
 						}
 					}
 					else
@@ -170,44 +100,9 @@ public class HealingWard : MonoBehaviour {
 						hitCollider.GetComponent<DamageSystem>().Damage(-32f, 0, transform.position, spell.owner);
 					}
 				}
-
-				if(damages > 0 && hitCollider.gameObject.GetComponent<SpellCasting>().team != spell.team)
-				{
-					hitCollider.GetComponent<DamageSystem>().AddDot (damages, duration, 0.0165f, spell.owner, effect);
-					//Can't dispel the lifesteal with this implementation
-					if(lifeSteals)
-					{
-						GetComponent<NetworkView>().RPC ("LifestealToPlayer", RPCMode.All);
-					}
-				}
 			}
 		}
 		spell.Invoke("KillSelf", bloomTime + 0.4f);
-	}
-
-	[RPC]
-	void LifestealToPlayer()
-	{
-		GameObject owner = null;
-		if(GetComponent<NetworkView>().isMine)
-		{
-			GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-			string ownerName = spell.owner;
-			foreach(GameObject player in players)
-			{
-				string playerName = player.GetComponent<SpellCasting>().playerName;
-				
-				if(ownerName == playerName)
-				{
-					owner = player;
-					break;
-				}
-			}
-		}
-		if(owner != null)
-		{
-			owner.GetComponent<DamageSystem>().AddHot(damages / 2, duration, 0.0165f, effect);
-		}
 	}
 
 	void OnTriggerStay2D(Collider2D other)
