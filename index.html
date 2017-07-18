@@ -2,20 +2,55 @@
 <html lang="en-us">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style type="text/css">
-body{margin:40px
-auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0
-10px}
-h1,h2,h3{line-height:1.2}
-img{
-	max-width: 100%;
-	height: auto;
-}
+<style>
+	body{margin:40px
+	auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0
+	10px}
+	h1,h2,h3{line-height:1.2}
+	img{
+		max-width: 100%;
+		height: auto;
+	}
+	
+	ul.topnav {
+	    list-style-type: none;
+	    margin: 0;
+	    padding: 0;
+	    overflow: hidden;
+	    background-color: #333;
+	}
+
+	ul.topnav li {float: left;}
+
+	ul.topnav li a {
+	    display: block;
+	    color: white;
+	    text-align: center;
+	    padding: 14px 16px;
+	    text-decoration: none;
+	}
+
+	ul.topnav li a:hover:not(.active) {background-color: #111;}
+
+	ul.topnav li a.active {background-color: #4CAF50;}
+
+	ul.topnav li.right {float: right;}
+
+	@media screen and (max-width: 600px){
+	    ul.topnav li.right, 
+	    ul.topnav li {float: none;}
+	}
 </style>
 </head>
 <body>
+	<ul class="topnav">
+  	  <li><a class="active" href="index.html">Home</a></li>
+  	  <li><a href="#news">News</a></li>
+ 	  <li><a href="#contact">Contact</a></li>
+  	  <li><a href="#about">About</a></li>
+	  <li><a href="download.html">Download - version 0.1</a></li>
+	</ul>
 	<h1> Battle of the Magi </h1>
-	<a href="downloads/BotM_01.zip">Download latest version - 0.1</a>
 	<div/>
 	<div>
 		Battle of the Magi is a top-down wizard arena brawler, where team tactics and strategies are key to victory. 
