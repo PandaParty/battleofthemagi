@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+	body{margin:40px
+	auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0
+	10px}
+	h1,h2,h3{line-height:1.2}
+	img{
+		max-width: 100%;
+		height: auto;
+	}
+	
+	ul.topnav {
+	    list-style-type: none;
+	    margin: 0;
+	    padding: 0;
+	    overflow: hidden;
+	    background-color: #333;
+	}
+	ul.topnav li {float: left;}
+	ul.topnav li a {
+	    display: block;
+	    color: white;
+	    text-align: center;
+	    padding: 14px 16px;
+	    text-decoration: none;
+	}
+	ul.topnav li a:hover:not(.active) {background-color: #111;}
+	ul.topnav li a.active {background-color: #4CAF50;}
+	ul.topnav li.right {float: right;}
+	@media screen and (max-width: 600px){
+	    ul.topnav li.right, 
+	    ul.topnav li {float: none;}
+	}
+</style>
+</head>
+<body>
+	<ul class="topnav">
+  	  <li><a href="index.html">Home</a></li>
+  	  <li><a href="#news">News</a></li>
+ 	    <li><a href="#contact">Contact</a></li>
+  	  <li><a href="#about">About</a></li>
+	  <li><a class="active" href="download.html">Download</a></li>
+	</ul>
+	<h1> Battle of the Magi version 0.1</h1>
+	<div/>
+	<div>
+		<a href="downloads/BotM_01.zip">Download latest version</a>
+	</div>
+	<div>
+		<h2>Changelog</h2>
+    <b>0.1</b>
+
+There are now only two teams
+
+Completely new network backend
+The underlying network code has been changed, (hopefully) leading to higher stability and fewer bugs
+
+Balance changes
+
+Gold gain per round increased to 160
+Obstacles are now round-ish
+
+Added a new spell: Arcane Bolt
+Projectile
+40 speed
+0.4s cast time
+10s cooldown
+5 damage
+5 knock factor
+Clean hit on an enemy player refreshes the cooldown
+Upgrade: Damage
+Each hit increases the damage of the next arcane bolt in this chain by 10/15/20%.
+Upgrade: Damage -> Knockback
+Hitting all three arcane bolts in a row increases the knockback of your next spell by 50%.
+Upgrade: Self Heal
+Hitting an arcane bolt heals you for 3/6/9 health.
+Upgrade: Self Heal -> Cooldown
+Hitting an arcane bolt lowers all your cooldowns by 10%.
+
+Added a new spell: Corrupting Bolt
+Projectile
+35 speed
+0.5s cast time
+10s cooldown
+Deals 18 damage over 6 seconds
+0 knock factor
+Upgrade: Damage Reduction
+Affected targets deal 10/20/30% less damage and healing
+Upgrade: Damage Reduction -> Cooldown Debuff
+Affected targets have 20% longer cooldowns
+Upgrade: Amplify
+Affected targets take 25% more damage from the next 1/2/3 direct damage spells
+Upgrade: AoE Blast
+Corrupting bolt now explodes in an AoE upon hit, affecting all targets within 4 units of impact point
+
+Fireball
+Cooldown nerfed to 8 seconds
+Damage upgrade buffed to 1/2/3 (knock 0.8/1.6/2.4) from 0.6/1.2/1.8 (knock 0.45/0.9/1.35)
+Cooldown upgrade buffed from 0.5 seconds to 1 second
+Final blast upgrade cost nerfed to 120 from 80.
+
+Heal
+Heal duration upgrade buffed to 0.7/1.4/2.1 from 0.35/0.7/1.05 (total heal buffed to 26/31/36 from  23.45/26/28.35)
+Fixed a bug with Heal damage reduction upgrade that caused it to amplify damage taken by 50% instead of reducing it
+
+Life grip
+Life grip no longer grants invulnerability
+Life grip shield upgrade nerfed from 30 absorb to 20 and duration from 6 seconds to 3 seconds.
+Life grip no longer lowers cooldowns
+Life grip pulling speed nerfed from 65 to 50
+
+Frost Prison
+Fixed a bug causing Glacial Storm upgrade to immobilize instead of slow
+
+Magma Blast
+Magma Blast Damage upgrade buffed to 1.5/3/4.5 from 1/2/3
+Magma Blast Lava Amplify upgrade replaced by Strength (increases knock factor by 3)
+Magma Blast Cooldown upgrade removed
+Magma blast Black Hole upgrade removed
+
+Miscellaneous bug fixes
+Name/Healthbar now hidden when dead
+Players can now see invisible teammates
+Powerups are now hidden when invisible
+You no longer have to leave and re-enter powerup to start capping it again
+Invisibility no longer grants invulnerability
+Teams should now be properly displayed when in lobby
+
+Known issues/bugs:
+Round amount in lobby is not synced to clients (always displays default 3)
+Placed shield upgrades DO NOT WORK
+Tooltips are missing from spell selection in lobby
+Upgrade UI is ugly
+Damage done/healed doesn't work
+	</div>
+</body>
+</html>
