@@ -28,7 +28,7 @@ public class MagmaBlast : NetworkBehaviour
 				CircleCollider2D coll = (CircleCollider2D)player.GetComponent("CircleCollider2D");
 				if(Vector3.Distance(player.transform.position, gameObject.transform.position) - coll.radius < 3.1f)
 				{
-                    damageSystem.Damage(spell.damage + spell.upgrades.magmaBlastDmg, spell.knockFactor, transform.position, spell.owner);
+                    damageSystem.Damage(spell.damage + spell.upgrades.magmaBlastDmg * 1.5f, spell.knockFactor + (amplify ? 3 : 0), transform.position, spell.owner);
 				}
 			}
 

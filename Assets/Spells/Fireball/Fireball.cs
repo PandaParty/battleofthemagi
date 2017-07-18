@@ -57,8 +57,8 @@ public class Fireball : NetworkBehaviour
     
 	void IncreaseDmg(int level)
 	{
-		spell.damage += 0.6f * level;
-		spell.knockFactor += 0.45f * level;
+		spell.damage += 1.0f * level;
+		spell.knockFactor += 0.8f * level;
 	}
 
 	void OnTriggerEnter2D(Collider2D other)

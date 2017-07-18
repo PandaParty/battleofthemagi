@@ -99,7 +99,7 @@ public class LifeGrip : NetworkBehaviour
                 Destroy(gameObject);
 				if(absorb)
 				{
-					hookedObject.GetComponent<DamageSystem>().Absorb(30, 6);
+					hookedObject.GetComponent<DamageSystem>().Absorb(20, 3);
 				}
 				hookedObject.GetComponent<DamageSystem>().Damage(-15, 0, transform.position, spell.owner);
 			    //hookedObject.GetComponent<NetworkView>().RPC ("LowerCd", RPCMode.All, 4f);

@@ -110,15 +110,15 @@ public class Upgrading : MonoBehaviour {
 		spellcastSet = 1;
 		#region Fireball
 		fireballDot = new UpgradeInfo("Damage \n over \n Time", 3, 40, null, button);
-		fireballDot.tooltip = "Increases damage per second by 0.1/0.2/0.3, and duration by 0.5/1/1.5";
+		fireballDot.tooltip = "Increases damage per second by 0.1/0.2/0.3, and duration by 0.5/1/1.5 (Total dot damage increases by 1.15/2.4/3.75)";
 		fireballFinalBlast = new UpgradeInfo("Final blast", 1, 120, fireballDot, button);
 		fireballFinalBlast.tooltip = "When the fireball DoT ends, deals a final 5 damage (this can be lethal)";
 
 
 		fireballDmg = new UpgradeInfo("Damage", 3, 40, null, button);
-		fireballDmg.tooltip = "Increases damage by 0.6/1.2/1.8";
+		fireballDmg.tooltip = "Increases damage by 1/2/3 and knock factor by 0.8/1.6/2.4";
 		fireballCd = new UpgradeInfo("Cooldown", 1, 120, fireballDmg, button);
-		fireballCd.tooltip = "Decreases fireball cooldown by 0.5 seconds";
+		fireballCd.tooltip = "Decreases fireball cooldown by 1 seconds";
 
 		fireballDot.relative = fireballDmg;
 		fireballDmg.relative = fireballDot;
@@ -167,9 +167,9 @@ public class Upgrading : MonoBehaviour {
 		magmaBlastBlackhole.tooltip = "Magma blast is now channeled for 2 seconds, and instead of knocking players away, it pulls them toward you.";
 
 		magmaBlastDmg = new UpgradeInfo("Damage", 3, 40, null, button);
-		magmaBlastDmg.tooltip = "Increases damage by 1/2/3";
-		magmaBlastAmplify = new UpgradeInfo("Lava \n Amplify", 1, 80, magmaBlastDmg, button);
-		magmaBlastAmplify.tooltip = "Places a debuff on enemies hit, causing the lava to deal 50% more damage to them for 5 seconds";
+		magmaBlastDmg.tooltip = "Increases damage by 1.5/3/4.5";
+		magmaBlastAmplify = new UpgradeInfo("Strength", 1, 120, magmaBlastDmg, button);
+		magmaBlastAmplify.tooltip = "Increases knock factor by 3";
 		
 		magmaBlastCd.relative = magmaBlastDmg;
 		magmaBlastDmg.relative = magmaBlastCd;
@@ -309,7 +309,7 @@ public class Upgrading : MonoBehaviour {
 		lifeGripCd = new UpgradeInfo("Cooldown", 3, 40, null, button);
 		lifeGripCd.tooltip = "Cooldown decreased by 0.5/1/1.5";
 		lifeGripShield = new UpgradeInfo("Absorb Shield", 1, 120, lifeGripCd, button);
-		lifeGripShield.tooltip = "Gripped allies get a shield that absorbs 30 damage for 4 seconds";
+		lifeGripShield.tooltip = "Gripped allies get a shield that absorbs 20 damage for 3 seconds";
 		
 		lifeGripCd.relative = bindingLength;
         #endregion
@@ -496,14 +496,14 @@ public class Upgrading : MonoBehaviour {
 			{
 				if(spells[i].spellName == "Fireball")
 				{
-					spells[i].spellMaxCd -= 0.5f;
+					spells[i].spellMaxCd -= 1.0f;
 					System.Type t = cd.GetType();
 					FieldInfo[] fields = t.GetFields();
 					foreach(FieldInfo f in fields)
 					{
 						if(f.Name.Equals("spell" + i + "MaxCD"))
 						{
-							f.SetValue(cd, (float)f.GetValue(cd) - 0.5f);
+							f.SetValue(cd, (float)f.GetValue(cd) - 1.0f);
 						}
 					}
 				}
@@ -634,25 +634,25 @@ public class Upgrading : MonoBehaviour {
 
         DrawOutline(new Rect(130, 0, 100, 30), "Magma Blast", "label", Color.black);
 
-        if (magmaBlastCd.Draw(rect1, spellCasting, "magmaBlastCd"))
-		{
-			for (int i = 0; i < spells.Count; i++)
-			{
-				if(spells[i].spellName == "MagmaBlastAlternative")
-				{
-					spells[i].spellMaxCd -= 0.35f;
-					System.Type t = cd.GetType();
-					FieldInfo[] fields = t.GetFields();
-					foreach(FieldInfo f in fields)
-					{
-						if(f.Name.Equals("spell" + i + "MaxCD"))
-						{
-							f.SetValue(cd, (float)f.GetValue(cd) - 0.35f);
-						}
-					}
-				}
-			}
-		}
+  //      if (magmaBlastCd.Draw(rect1, spellCasting, "magmaBlastCd"))
+		//{
+		//	for (int i = 0; i < spells.Count; i++)
+		//	{
+		//		if(spells[i].spellName == "MagmaBlastAlternative")
+		//		{
+		//			spells[i].spellMaxCd -= 0.35f;
+		//			System.Type t = cd.GetType();
+		//			FieldInfo[] fields = t.GetFields();
+		//			foreach(FieldInfo f in fields)
+		//			{
+		//				if(f.Name.Equals("spell" + i + "MaxCD"))
+		//				{
+		//					f.SetValue(cd, (float)f.GetValue(cd) - 0.35f);
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 		//if(magmaBlastBlackhole.Draw (rect2, spellCasting, "magmaBlastBlackhole"))
 		//{
 		//	for (int i = 0; i < spells.Count; i++)
