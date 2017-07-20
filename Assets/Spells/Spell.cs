@@ -17,6 +17,7 @@ public class Spell : NetworkBehaviour {
     [SyncVar]
     public Vector2 aimPoint;
 	public bool destroysSpells;
+    [SyncVar]
 	public Vector2 aimDir;
 
     public Upgrades upgrades;

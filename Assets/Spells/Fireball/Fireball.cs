@@ -14,28 +14,49 @@ public class Fireball : NetworkBehaviour
 
 	public float dotDamage;
 	public float duration;
+    public GameObject minorFireball;
 
-	bool finalBlast;
+    bool finalBlast;
     
 	void Start ()
     {
 		oldSpeed = speed;
 		spell.SetColor();
 		Vector2 aimPos = ((Spell)gameObject.GetComponent("Spell")).aimPoint;
-		spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
-		transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
+        if(spell.aimDir == null || spell.aimDir == Vector2.zero)
+		    spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
+        transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
 		AudioSource.PlayClipAtPoint(cast, transform.position);
 
         if (!isServer)
             return;
 
         spell.Invoke("KillSelf", 5);
-        IncreaseDot(spell.upgrades.fireballDot);
-        if(spell.upgrades.fireballFinalBlast > 0)
+        if(spell.upgrades != null)
         {
-            ActivateFinalBlast();
+            IncreaseDot(spell.upgrades.fireballDot);
+            finalBlast = spell.upgrades.fireballFinalBlast > 0;
+            IncreaseDmg(spell.upgrades.fireballDmg);
+            if (spell.upgrades.fireballCd > 0)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    float angle = Mathf.Atan2(spell.aimDir.y, spell.aimDir.x) * Mathf.Rad2Deg;
+                    if (i == 0)
+                        angle -= 35.0f;
+                    else
+                        angle += 35.0f;
+                    angle *= Mathf.Deg2Rad;
+                    Vector3 newAimDir = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0);
+                    GameObject newFireball = Instantiate(minorFireball, transform.position, Quaternion.identity);
+                    Spell spellScript = newFireball.GetComponent<Spell>();
+                    spellScript.owner = spell.owner;
+                    spellScript.team = spell.team;
+                    spellScript.aimDir = newAimDir;
+                    NetworkServer.Spawn(newFireball);
+                }
+            }
         }
-        IncreaseDmg(spell.upgrades.fireballDmg);
     }
 	
 	void Update ()
@@ -48,11 +69,6 @@ public class Fireball : NetworkBehaviour
 		dotDamage += 0.05f * level;
 		duration += 0.5f * level;
         Debug.Log("Dot increased");
-	}
-    
-	void ActivateFinalBlast()
-	{
-		finalBlast = true;
 	}
     
 	void IncreaseDmg(int level)

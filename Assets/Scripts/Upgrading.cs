@@ -117,8 +117,8 @@ public class Upgrading : MonoBehaviour {
 
 		fireballDmg = new UpgradeInfo("Damage", 3, 40, null, button);
 		fireballDmg.tooltip = "Increases damage by 1/2/3 and knock factor by 0.8/1.6/2.4";
-		fireballCd = new UpgradeInfo("Cooldown", 1, 120, fireballDmg, button);
-		fireballCd.tooltip = "Decreases fireball cooldown by 1 seconds";
+		fireballCd = new UpgradeInfo("Cone", 1, 120, fireballDmg, button);
+		fireballCd.tooltip = "Shoots two additional smaller fireballs with half damage in a cone";
 
 		fireballDot.relative = fireballDmg;
 		fireballDmg.relative = fireballDot;
@@ -488,27 +488,8 @@ public class Upgrading : MonoBehaviour {
         DrawOutline(new Rect(130, 0, 100, 30), "Fireball", "label", Color.black);
 		fireballDot.Draw (rect1, spellCasting, "fireballDot");
 		fireballFinalBlast.Draw (rect2, spellCasting, "fireballFinalBlast");
-
 		fireballDmg.Draw (rect3, spellCasting, "fireballDmg");
-		if(fireballCd.Draw(rect4, spellCasting, "fireballCd"))
-		{
-			for (int i = 0; i < spells.Count; i++)
-			{
-				if(spells[i].spellName == "Fireball")
-				{
-					spells[i].spellMaxCd -= 1.0f;
-					System.Type t = cd.GetType();
-					FieldInfo[] fields = t.GetFields();
-					foreach(FieldInfo f in fields)
-					{
-						if(f.Name.Equals("spell" + i + "MaxCD"))
-						{
-							f.SetValue(cd, (float)f.GetValue(cd) - 1.0f);
-						}
-					}
-				}
-			}
-		}
+        fireballCd.Draw(rect4, spellCasting, "fireballCd");
 		GUI.EndGroup();
 	}
 
