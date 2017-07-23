@@ -292,7 +292,7 @@ public class Upgrading : MonoBehaviour {
 
 		#region Blink
 		blinkDmg = new UpgradeInfo("Damage", 3, 40, null, button);
-		blinkDmg.tooltip = "Increases damage to 7/9/11";
+		blinkDmg.tooltip = "Increases damage to 3/6/9";
 		blinkThrust = new UpgradeInfo("Thrust", 1, 120, blinkDmg, button);
 		blinkThrust.tooltip = "Now rushes forward, no longer invulnerable but knocking back on collision";
 		

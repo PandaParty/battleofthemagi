@@ -53,7 +53,7 @@ public class Blink : NetworkBehaviour {
     
 	void IncreaseDmg(int level)
 	{
-		spell.damage = 5 + level * 2;
+		spell.damage = level * 3;
 	}
 	
 	void Update ()
