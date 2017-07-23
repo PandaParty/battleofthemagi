@@ -279,7 +279,7 @@ public class Upgrading : MonoBehaviour {
 		hookDmg = new UpgradeInfo("Damage", 3, 40, null, button);
 		hookDmg.tooltip = "Increases damage by 1.5/3/4.5";
 		hookPull = new UpgradeInfo("Reverse hook", 1, 120, hookDmg, button);
-		hookPull.tooltip = "Now pulls the target to you instead of the other way around, increasing damage by 3.5. Adds a 50% slow for 3 seconds. Damage is dealt instantly";
+		hookPull.tooltip = "Now pulls the target to you instead of the other way around, increasing damage by 3.5. Damage is dealt instantly";
 		
 		hookCd = new UpgradeInfo("Cooldown", 3, 40, null, button);
 		hookCd.tooltip = "Cooldown decreased by 0.5/1/1.5";

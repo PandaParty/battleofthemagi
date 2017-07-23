@@ -15,6 +15,11 @@ Fireball
 Cooldown upgrade replaced
 Upgrade: Cone
 Shoots two additional smaller fireballs with half damage in a cone
+Blink
+Nerfed damage upgrade from 7/9/11 to 3/6/9.
+Hook
+Buffed reverse hook damage from 2.5 to 3.5
+Reverse hook now deals damage on hook hit.
 
 Bug fixes
 Fixed an issue with corrupting bolt not properly colliding with other spells
