@@ -34,7 +34,7 @@ public class Spell : NetworkBehaviour {
 
 	public void SetColor()
 	{
-        Debug.Log(team);
+        Debug.Log("Particle team is: " + team);
         ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>();
         foreach(ParticleSystem ps in systems)
         {

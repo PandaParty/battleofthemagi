@@ -58,6 +58,7 @@ public class Hook : NetworkBehaviour
 	void ActivatePull()
 	{
 		pulling = true;
+        spell.damage += 3.5f;
 	}
     
 	void ActivateInvu()
@@ -165,11 +166,18 @@ public class Hook : NetworkBehaviour
 				}
 			}
 			if(other.CompareTag("Obstacle"))
-			{
-				hookedObject = other.gameObject;
-				CancelInvoke("TimeOut");
-				AudioSource.PlayClipAtPoint(hit, transform.position);
-				hasHooked = true;
+            {
+                AudioSource.PlayClipAtPoint(hit, transform.position);
+                if (!pulling)
+                {
+                    hookedObject = other.gameObject;
+                    CancelInvoke("TimeOut");
+                    hasHooked = true;
+                }
+                else
+                {
+                    TimeOut();
+                }
 			}
 		}
 	}

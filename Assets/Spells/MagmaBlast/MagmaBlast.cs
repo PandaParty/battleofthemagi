@@ -4,15 +4,17 @@ using UnityEngine.Networking;
 
 public class MagmaBlast : NetworkBehaviour
 {
-	
 	public Spell spell;
 	public AudioClip cast;
 	public bool amplify;
 	public float selfDmg = 4;
 
-	void Start ()
+    public Material fireMat;
+    public Material iceMat;
+
+    void Start ()
     {
-		spell.SetColor();
+		SetColor();
 		AudioSource.PlayClipAtPoint(cast, transform.position);
         if (!isServer)
             return;
@@ -42,7 +44,21 @@ public class MagmaBlast : NetworkBehaviour
 		Invoke ("KillSelf", 1);
 	}
 
-	public void KillSelf()
+
+    void SetColor()
+    {
+        switch (spell.team)
+        {
+            case 1:
+                gameObject.GetComponent<ParticleSystemRenderer>().material = fireMat;
+                break;
+            case 2:
+                gameObject.GetComponent<ParticleSystemRenderer>().material = iceMat;
+                break;
+        }
+    }
+
+    public void KillSelf()
 	{
 		Destroy (gameObject);
 	}
