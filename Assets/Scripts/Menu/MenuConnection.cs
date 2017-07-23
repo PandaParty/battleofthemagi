@@ -12,7 +12,7 @@ public class MenuConnection : NetworkLobbyManager
     public InputField nameInput;
     public Button startGameButton;
     public VerticalLayoutGroup lobbyList;
-    public Button lobbyItem;
+    public GameObject lobbyItem;
 
     public GameObject lobbyName;
     public GameObject team1Players;
@@ -25,6 +25,9 @@ public class MenuConnection : NetworkLobbyManager
     public GameObject menuMain;
     public GameObject menuclient;
     public GameObject menuhost;
+    public GameObject playMenu;
+
+    private string gameName = "3v3 BotM pros only -apem";
 
     public void Awake()
     {
@@ -34,6 +37,7 @@ public class MenuConnection : NetworkLobbyManager
         {
             nameInput.text = PlayerPrefs.GetString("Player Name");
         }
+        Invoke("RefreshLobbies", 0);
     }
 
     public void SetPlayerName(string name)
@@ -43,17 +47,31 @@ public class MenuConnection : NetworkLobbyManager
 
     public void OnClickStartHost()
     {
+        SwapToLobby();
         StartHost();
     }
 
     public void OnClickStartMM()
     {
-        matchMaker.CreateMatch(PlayerPrefs.GetString("Player Name") + "'s game", 6, true, "", "", "", 0, 0, OnMatchCreate);
+        CancelInvoke("RefreshLobbies");
+        matchMaker.CreateMatch(gameName, 6, true, "", "", "", 0, 0, OnMatchCreate);
+    }
+
+    public override void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
+    {
+        this.matchInfo = matchInfo;
+        base.OnMatchCreate(success, extendedInfo, matchInfo);
     }
 
     public void OnClickRefresh()
     {
         matchMaker.ListMatches(0, 10, "", true, 0, 0, OnMatchList);
+    }
+
+    public void RefreshLobbies()
+    {
+        matchMaker.ListMatches(0, 10, "", true, 0, 0, OnMatchList);
+        Invoke("RefreshLobbies", 1);
     }
 
     public override void OnMatchList(bool success, string extendedInfo, List<MatchInfoSnapshot> matchList)
@@ -67,16 +85,18 @@ public class MenuConnection : NetworkLobbyManager
         foreach(MatchInfoSnapshot info in matchList)
         {
             Debug.Log(info.name);
-            Button newItem = Instantiate(lobbyItem, lobbyList.transform);
+            GameObject newItem = Instantiate(lobbyItem, lobbyList.transform);
             newItem.transform.Find("LobbyName").GetComponent<Text>().text = info.name;
-            newItem.onClick.AddListener(SwapToLobby);
-            newItem.onClick.AddListener(delegate { ConnectToMM(info.networkId);});
+            newItem.transform.Find("Slots").GetComponent<Text>().text = info.currentSize + "/" + info.maxSize;
+            newItem.GetComponentInChildren<Button>().onClick.AddListener(SwapToLobby);
+            newItem.GetComponentInChildren<Button>().onClick.AddListener(delegate { ConnectToMM(info.networkId);});
         }
     }
 
     void SwapToLobby()
     {
-        menuMain.SetActive(false);
+        CancelInvoke("RefreshLobbies");
+        playMenu.SetActive(false);
         menulobby.SetActive(true);
         menuclient.SetActive(true);
         menuhost.SetActive(false);
@@ -85,6 +105,11 @@ public class MenuConnection : NetworkLobbyManager
     void ConnectToMM(NetworkID id)
     {
         matchMaker.JoinMatch(id, "", "", "", 0, 0, OnMatchJoined);
+    }
+
+    public void SetGameName(string n)
+    {
+        gameName = n;
     }
 
     public void OnClickConnect()
@@ -111,6 +136,11 @@ public class MenuConnection : NetworkLobbyManager
     public override void OnLobbyServerPlayersReady()
     {
         startGameButton.interactable = true;
+    }
+
+    public void OnClickBack()
+    {
+        Invoke("RefreshLobbies", 0.5f);
     }
 
     public void CheckReady()

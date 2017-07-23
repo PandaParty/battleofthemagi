@@ -20,7 +20,7 @@ public class HealingWard : NetworkBehaviour {
     
 	void Start ()
     {
-		SetColor();
+		spell.SetColor();
 		transform.position = spell.aimPoint;
 		transform.position += new Vector3(0, 0, 1);
 		AudioSource.PlayClipAtPoint(cast, transform.position);
@@ -30,7 +30,8 @@ public class HealingWard : NetworkBehaviour {
         if (spell.upgrades.healingDamageReduct > 0)
             DamageReduct();
 
-        BloomTime(spell.upgrades.healingBloom);
+        if(spell.upgrades.healingBloom > 0)
+            BloomTime(spell.upgrades.healingBloom);
         if (spell.upgrades.healingBurst > 0)
             Instant();
 	}

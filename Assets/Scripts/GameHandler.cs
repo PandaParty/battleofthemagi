@@ -185,7 +185,7 @@ public class GameHandler : NetworkBehaviour
     {
         SpellCasting sc = this.gameObject.GetComponent<Upgrading>().spellCasting;
 
-        sc.gold += 260;
+        sc.gold += 160;
     }
 
 	[ClientRpc]
@@ -195,8 +195,8 @@ public class GameHandler : NetworkBehaviour
 		currentRound ++;
 		state = State.Upgrade;
 		isUpgrading = true;
-		timeCounter = 10;
-		Invoke ("SwapToGame", 10);
+		timeCounter = 60;
+		Invoke ("SwapToGame", 60);
 	}
 
 	[ClientRpc]

@@ -97,20 +97,11 @@ public class BindingShot : NetworkBehaviour
                 }
 			}
 		}
-
-		if(other.CompareTag ("Obstacle"))
-		{
-			other.SendMessage("Damage", spell.damage);
-            GameObject hit = Instantiate(bindingShotHit, this.transform.position, Quaternion.identity);
-            NetworkServer.Spawn(hit);
-            Destroy(gameObject);
-        }
-
-		if(other.CompareTag ("Spell"))
+        else if (other.CompareTag("Spell"))
         {
-			Spell otherSpell = (Spell)other.GetComponent("Spell");
-			if(spell.team != otherSpell.team && otherSpell.type == Spell.spellType.Projectile)
-			{
+            Spell otherSpell = (Spell)other.GetComponent("Spell");
+            if (spell.team != otherSpell.team && otherSpell.type == Spell.spellType.Projectile)
+            {
                 if (spell.destroysSpells)
                 {
                     GameObject hit = Instantiate(bindingShotHit, transform.position, Quaternion.identity);
@@ -118,12 +109,22 @@ public class BindingShot : NetworkBehaviour
                     Destroy(other.gameObject);
                 }
                 if (otherSpell.destroysSpells)
-				{
+                {
                     GameObject hit = Instantiate(bindingShotHit, transform.position, Quaternion.identity);
                     NetworkServer.Spawn(hit);
                     Destroy(gameObject);
                 }
-			}
-		}
+            }
+        }
+
+        if (other.CompareTag ("Obstacle"))
+		{
+			other.SendMessage("Damage", spell.damage);
+            GameObject hit = Instantiate(bindingShotHit, this.transform.position, Quaternion.identity);
+            NetworkServer.Spawn(hit);
+            Destroy(gameObject);
+        }
+
+		
 	}
 }

@@ -13,11 +13,12 @@ public class PlacedShield : NetworkBehaviour {
 	float amplifyAmount;
 	bool knockImmune;
 	bool speedBoost;
-
-	// Use this for initialization
+    
 	void Start ()
     {
         AudioSource.PlayClipAtPoint(cast, transform.position);
+        SetColor();
+
         if (!isServer)
             return;
 
@@ -35,31 +36,20 @@ public class PlacedShield : NetworkBehaviour {
 			}
 		}
 		spell.Invoke ("KillSelf", duration);
-
-
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-		//	if(upgrading.placedShieldAmp.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("ActivateAmplify", RPCMode.All, upgrading.placedShieldAmp.currentLevel);
-				
-		//		if(upgrading.placedShieldKnockImmune.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateKnockImmune", RPCMode.All);
-		//		}
-		//	}
-			
-		//	if(upgrading.placedShieldCd.currentLevel > 0)
-		//	{
-		//		if(upgrading.placedShieldSpeed.currentLevel > 0)
-		//		{
-		//			GetComponent<NetworkView>().RPC ("ActivateSpeedBoost", RPCMode.All);
-		//		}
-		//	}
-		//}
-
 	}
+
+    void SetColor()
+    {
+        switch(spell.team)
+        {
+            case 1:
+                GetComponentInChildren<SpriteRenderer>().color = new Color(0.57f, 0.19f, 0.156f);
+                break;
+            case 2:
+                GetComponentInChildren<SpriteRenderer>().color = new Color(0.28f, 0.77f, 0.84f);
+                break;
+        }
+    }
 
 	[RPC]
 	void ActivateAmplify(int ampLevel)
@@ -78,13 +68,7 @@ public class PlacedShield : NetworkBehaviour {
 	{
 		speedBoost = true;
 	}
-
-
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
+    
 	void OnTriggerStay2D(Collider2D other)
 	{
         if (!isServer)

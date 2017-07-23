@@ -67,14 +67,13 @@ public class FrostPrison : NetworkBehaviour {
 			    SpriteRenderer[] renderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
 			    foreach(SpriteRenderer renderer in renderers)
 			    {
-				    Debug.Log ("Setting a color");
-				    renderer.color = new Color(0.43f, 1f, 0.46f);
+				    renderer.color = new Color(1.0f, 0.43f, 0.46f);
 			    }
 
 			    ParticleSystem[] systems = gameObject.GetComponentsInChildren<ParticleSystem>();
 			    foreach(ParticleSystem system in systems)
 			    {
-				    system.startColor = new Color(0.19f, 0.57f, 0.156f);
+				    system.startColor = new Color(0.57f, 0.19f, 0.156f);
 			    }
 
 			break;

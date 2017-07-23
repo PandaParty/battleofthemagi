@@ -35,15 +35,28 @@ public class Spell : NetworkBehaviour {
 	public void SetColor()
 	{
         Debug.Log(team);
-		switch(team)
-		{
-		    case 1:
-			    gameObject.GetComponent<ParticleSystem>().startColor = new Color(0.19f, 0.57f, 0.156f);
-			break;
-		    case 2:
-                gameObject.GetComponent<ParticleSystem>().startColor = new Color(0.28f, 0.77f, 0.84f);
-			break;
-		}
+        ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>();
+        foreach(ParticleSystem ps in systems)
+        {
+            switch(team)
+            {
+                case 1:
+                    ps.startColor = new Color(0.57f, 0.19f, 0.156f);
+                    break;
+                case 2:
+                    ps.startColor = new Color(0.28f, 0.77f, 0.84f);
+                    break;
+            }
+        }
+		//switch(team)
+		//{
+		//    case 1:
+		//	    gameObject.GetComponent<ParticleSystem>().startColor = new Color(0.57f, 0.19f, 0.156f);
+		//	break;
+		//    case 2:
+  //              gameObject.GetComponent<ParticleSystem>().startColor = new Color(0.28f, 0.77f, 0.84f);
+		//	break;
+		//}
 	}
 	
 	//[RPC]

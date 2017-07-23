@@ -102,20 +102,12 @@ public class Fireball : NetworkBehaviour
                 }
             }
         }
-
-		if(other.CompareTag ("Obstacle"))
-		{
-            other.SendMessage("Damage", spell.damage, SendMessageOptions.DontRequireReceiver);
-            Destroy(gameObject);
-            GameObject explo = Instantiate(fireballExplo, transform.position, Quaternion.identity);
-            NetworkServer.Spawn(explo);
-        }
-		else if(other.CompareTag ("Spell"))
-		{
+        else if (other.CompareTag("Spell"))
+        {
             Spell otherSpell = (Spell)other.GetComponent("Spell");
             if (spell.team != otherSpell.team && otherSpell.type == Spell.spellType.Projectile)
             {
-                if(spell.destroysSpells)
+                if (spell.destroysSpells)
                 {
                     GameObject explo = Instantiate(fireballExplo, transform.position, Quaternion.identity);
                     NetworkServer.Spawn(explo);
@@ -129,5 +121,14 @@ public class Fireball : NetworkBehaviour
                 }
             }
         }
+
+        if (other.CompareTag ("Obstacle"))
+		{
+            other.SendMessage("Damage", spell.damage, SendMessageOptions.DontRequireReceiver);
+            Destroy(gameObject);
+            GameObject explo = Instantiate(fireballExplo, transform.position, Quaternion.identity);
+            NetworkServer.Spawn(explo);
+        }
+		
 	}
 }

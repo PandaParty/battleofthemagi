@@ -30,7 +30,7 @@ public class CorruptingBolt : NetworkBehaviour
     void Start()
     {
         oldSpeed = speed;
-        //spell.SetColor();
+        spell.SetColor();
         Vector2 aimPos = ((Spell)gameObject.GetComponent("Spell")).aimPoint;
         spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
         transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
@@ -83,17 +83,6 @@ public class CorruptingBolt : NetworkBehaviour
                 }
             }
         }
-
-        if (other.CompareTag("Obstacle"))
-        {
-            if (blast)
-            {
-                Blast();
-            }
-            GameObject hit = Instantiate(boltHit, transform.position, Quaternion.identity);
-            NetworkServer.Spawn(hit);
-            Destroy(gameObject);
-        }
         else if (other.CompareTag("Spell"))
         {
             Spell otherSpell = (Spell)other.GetComponent("Spell");
@@ -117,6 +106,19 @@ public class CorruptingBolt : NetworkBehaviour
                 }
             }
         }
+
+        if (other.CompareTag("Obstacle"))
+        {
+            if (blast)
+            {
+                Blast();
+            }
+            GameObject hit = Instantiate(boltHit, transform.position, Quaternion.identity);
+            NetworkServer.Spawn(hit);
+            Destroy(gameObject);
+        }
+
+        
     }
 
     void Blast()

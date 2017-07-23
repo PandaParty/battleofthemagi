@@ -12,6 +12,9 @@ public class ArcaneBolt : NetworkBehaviour
     public GameObject arcaneBoltHit;
     public AudioClip cast;
 
+    public Material fireMat;
+    public Material iceMat;
+
     private float arcaneBoltDmgBoost = 1;
     private bool arcaneBoltKnockBoost;
     private float arcaneBoltHeal = 0;
@@ -24,7 +27,7 @@ public class ArcaneBolt : NetworkBehaviour
         spell.aimDir = Vector3.Normalize(new Vector3(aimPos.x, aimPos.y) - transform.position);
         transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
         AudioSource.PlayClipAtPoint(cast, transform.position);
-
+        SetColor();
         if (!isServer)
             return;
 
@@ -38,6 +41,19 @@ public class ArcaneBolt : NetworkBehaviour
         
     }
 	
+    void SetColor()
+    {
+        switch(spell.team)
+        {
+            case 1:
+                gameObject.GetComponent<TrailRenderer>().material = fireMat;
+                break;
+            case 2:
+                gameObject.GetComponent<TrailRenderer>().material = iceMat;
+                break;
+        }
+    }
+
 	void Update ()
     {
         transform.position += new Vector3(spell.aimDir.x, spell.aimDir.y) / GlobalConstants.unitScaling * speed * Time.deltaTime * 60;
@@ -81,14 +97,6 @@ public class ArcaneBolt : NetworkBehaviour
                 }
             }
         }
-
-        if (other.CompareTag("Obstacle"))
-        {
-            other.SendMessage("Damage", spell.damage, SendMessageOptions.DontRequireReceiver);
-            Destroy(gameObject);
-            GameObject hit = Instantiate(arcaneBoltHit, transform.position, Quaternion.identity);
-            NetworkServer.Spawn(hit);
-        }
         else if (other.CompareTag("Spell"))
         {
             Spell otherSpell = (Spell)other.GetComponent("Spell");
@@ -108,5 +116,14 @@ public class ArcaneBolt : NetworkBehaviour
                 }
             }
         }
+
+        if (other.CompareTag("Obstacle"))
+        {
+            other.SendMessage("Damage", spell.damage, SendMessageOptions.DontRequireReceiver);
+            Destroy(gameObject);
+            GameObject hit = Instantiate(arcaneBoltHit, transform.position, Quaternion.identity);
+            NetworkServer.Spawn(hit);
+        }
+        
     }
 }

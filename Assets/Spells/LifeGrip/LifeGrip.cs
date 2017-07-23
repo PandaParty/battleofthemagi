@@ -13,7 +13,10 @@ public class LifeGrip : NetworkBehaviour
 	public AudioClip cast;
 	public AudioClip hit;
 
-	bool absorb;
+    public Material fireMat;
+    public Material iceMat;
+
+    bool absorb;
 	bool hasHooked;
 
 	public GameObject absorbShield;
@@ -21,6 +24,7 @@ public class LifeGrip : NetworkBehaviour
 	void Start ()
     {
         AudioSource.PlayClipAtPoint(cast, transform.position);
+        SetColor();
         if (!isServer)
             return;
 
@@ -46,19 +50,24 @@ public class LifeGrip : NetworkBehaviour
 
         if (spell.upgrades.lifeGripShield > 0)
             ActivateAbsorb();
-
-		//if(GetComponent<NetworkView>().isMine)
-		//{
-		//	Upgrading upgrading = GameObject.Find ("GameHandler").GetComponent<Upgrading>();
-
-		//	if(upgrading.lifeGripShield.currentLevel > 0)
-		//	{
-		//		GetComponent<NetworkView>().RPC ("ActivateAbsorb", RPCMode.All);
-		//	}
-		//}
+        
 	}
-    
-	void ActivateAbsorb()
+
+
+    void SetColor()
+    {
+        switch (spell.team)
+        {
+            case 1:
+                gameObject.GetComponent<LineRenderer>().material = fireMat;
+                break;
+            case 2:
+                gameObject.GetComponent<LineRenderer>().material = iceMat;
+                break;
+        }
+    }
+
+    void ActivateAbsorb()
 	{
 		absorb = true;
 	}
