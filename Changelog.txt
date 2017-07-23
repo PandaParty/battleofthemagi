@@ -3,6 +3,24 @@ Changelog:
 ---------------
 Alpha
 ---------------
+0.11
+Some placeholder UI changes
+
+Changed team 1 to Fire graphics
+Fixed spell colors to properly reflect which team cast them
+
+Balance changes
+
+Fireball
+Cooldown upgrade replaced
+Upgrade: Cone
+Shoots two additional smaller fireballs with half damage in a cone
+
+Bug fixes
+Fixed an issue with corrupting bolt not properly colliding with other spells
+Fixed an issue where sometimes a projectile could hit both a player and a spell at the same time
+
+
 0.1
 
 There are now only two teams
