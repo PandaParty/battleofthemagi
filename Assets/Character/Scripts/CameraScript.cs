@@ -7,6 +7,8 @@ public class CameraScript : MonoBehaviour {
 
 	private bool cameraLocked = true;
 
+    public float cameraDist = 15;
+
 	public GameObject PlayerObject
 	{
 		set 
@@ -14,14 +16,9 @@ public class CameraScript : MonoBehaviour {
 			playerObject = value;
 		}
 	}
-
-	// Use this for initialization
-	void Start () {
 	
-	}
-	
-	// Update is called once per frame
-	void Update () {
+	void Update ()
+    {
 		if(Input.GetKeyDown(KeyCode.UpArrow))
 		{
 			cameraLocked = !cameraLocked;
@@ -30,12 +27,14 @@ public class CameraScript : MonoBehaviour {
 		{
 			if(cameraLocked)
 			{
-				transform.position = new Vector3(playerObject.transform.position.x, playerObject.transform.position.y, -1);
+				transform.position = new Vector3(playerObject.transform.position.x, playerObject.transform.position.y, 0) - transform.forward * cameraDist - transform.up;
 			}
 			else if(GameHandler.state == GameHandler.State.Game)
 			{
-				Vector3 newPos = Vector3.Lerp(playerObject.transform.position, this.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition), 0.5f);
-				transform.position = new Vector3(newPos.x, newPos.y, -1);
+                Vector3 mousePos = Input.mousePosition;
+                mousePos.z = cameraDist;
+				Vector3 newPos = Vector3.Lerp(playerObject.transform.position, GetComponent<Camera>().ScreenToWorldPoint(mousePos), 0.5f);
+				transform.position = new Vector3(newPos.x, newPos.y, 0) - transform.forward * cameraDist - transform.up;
 				//transform.position = new Vector3(playerObject.transform.position.x, playerObject.transform.position.y, -1);
 			}
 		}

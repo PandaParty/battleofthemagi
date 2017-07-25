@@ -54,7 +54,7 @@ public class MenuConnection : NetworkLobbyManager
     public void OnClickStartMM()
     {
         CancelInvoke("RefreshLobbies");
-        matchMaker.CreateMatch(gameName, 6, true, "", "", "", 0, 0, OnMatchCreate);
+        matchMaker.CreateMatch(gameName, 10, true, "", "", "", 0, 0, OnMatchCreate);
     }
 
     public override void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
@@ -130,7 +130,7 @@ public class MenuConnection : NetworkLobbyManager
     
     public override void OnLobbyServerConnect(NetworkConnection conn)
     {
-        Debug.Log("Someone connected");
+        Debug.Log("Someone connected " + conn.address);
     }
 
     public override void OnLobbyServerPlayersReady()

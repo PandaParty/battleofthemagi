@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-public class LobbyPlayer : NetworkLobbyPlayer {
+public class LobbyPlayer : NetworkLobbyPlayer
+{
     [SyncVar(hook = "OnMyName")]
     public string playerName;
     [SyncVar(hook = "OnMyTeam")]
@@ -22,9 +23,9 @@ public class LobbyPlayer : NetworkLobbyPlayer {
 
     public override void OnClientEnterLobby()
     {
-        base.OnClientEnterLobby();
-        menuLobby.AddPlayer(this);
         Debug.Log("Client entered lobby");
+        menuLobby.AddPlayer(this);
+        base.OnClientEnterLobby();
     }
 
     public override void OnStartLocalPlayer()
@@ -36,10 +37,10 @@ public class LobbyPlayer : NetworkLobbyPlayer {
 
     public override void OnClientReady(bool readyState)
     {
-        base.OnClientReady(readyState);
         menuLobby.CheckReady();
         menuLobby.UpdatePlayerList();
         Debug.Log("A client is ready: " + readyState);
+        base.OnClientReady(readyState);
     }
 
     [Command]

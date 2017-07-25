@@ -98,14 +98,23 @@ public class Movement : NetworkBehaviour {
             movement = Vector3.Normalize(movement);
             if (bound == Vector3.zero)
             {
-                if(!spellCasting.isCasting)
+                if (!spellCasting.isCasting)
                 {
+                    if (movement.magnitude > 0.1)
+                    {
+                        GetComponentInChildren<Wizard>().RunAni();
+                    }
+                    else
+                    {
+                        GetComponentInChildren<Wizard>().IdleAni();
+                    }
                     transform.position += (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60;
                 }
                 transform.position += damageSystem.knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60;
             }
             else
             {
+               
                 Vector3 newPos = transform.position + (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60 + damageSystem.knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60; ;
                 
                 if (Vector3.Distance(bound, newPos) < length)

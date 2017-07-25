@@ -382,7 +382,18 @@ public class SpellCasting : NetworkBehaviour
 	public void StartCasting(SpellInfo spell)
 	{
 		spell.castTime -= Time.deltaTime;
-		if(spell.castTime <= 0)
+        if (spell.spell.GetComponent<Spell>().type == Spell.spellType.Projectile)
+        {
+            if (spell.castTime <= 0.5f)
+            {
+                GetComponentInChildren<Wizard>().AttackAni();
+            }
+        }
+        else
+        {
+            GetComponentInChildren<Wizard>().SkillAni();
+        }
+        if (spell.castTime <= 0)
 		{
 			spell.castTime = spell.totalCastTime;
 			spell.spellCd = spell.spellMaxCd;
@@ -421,8 +432,7 @@ public class SpellCasting : NetworkBehaviour
 	{
 		if(spell != null && isLocalPlayer)
 		{
-			Vector3 aim = Camera.main.ScreenToWorldPoint (new Vector3((int)Input.mousePosition.x, (int)Input.mousePosition.y, 0));
-            Debug.Log("I cast: " + spell);
+			Vector3 aim = Camera.main.ScreenToWorldPoint (new Vector3((int)Input.mousePosition.x, (int)Input.mousePosition.y, Camera.main.GetComponent<CameraScript>().cameraDist));
             CmdCastSpell(spell, playerName, team, aim.x, aim.y, dmgBoost);
 			//GetComponent<NetworkView>().RPC ("CastSpell", RPCMode.All, spell, playerName, team, aim.x, aim.y, dmgBoost, Network.AllocateViewID());
 		}
