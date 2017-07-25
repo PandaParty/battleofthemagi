@@ -384,10 +384,7 @@ public class SpellCasting : NetworkBehaviour
 		spell.castTime -= Time.deltaTime;
         if (spell.spell.GetComponent<Spell>().type == Spell.spellType.Projectile)
         {
-            if (spell.castTime <= 0.5f)
-            {
-                GetComponentInChildren<Wizard>().AttackAni();
-            }
+            GetComponentInChildren<Wizard>().AttackAni();
         }
         else
         {
@@ -453,7 +450,7 @@ public class SpellCasting : NetworkBehaviour
 			}
 			if(whichSpell != null)
 			{
-				GameObject newSpell = Instantiate(whichSpell, transform.position, transform.rotation);
+				GameObject newSpell = Instantiate(whichSpell, transform.position - new Vector3(0, 0, 1), transform.rotation);
 				Spell spellScript = (Spell)newSpell.GetComponent<Spell>();
 				spellScript.owner = owner;
 				spellScript.team = spellTeam;

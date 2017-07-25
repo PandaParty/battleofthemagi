@@ -114,7 +114,10 @@ public class Movement : NetworkBehaviour {
             }
             else
             {
-               
+                if(!spellCasting.isCasting)
+                {
+                    GetComponentInChildren<Wizard>().StunAni();
+                }
                 Vector3 newPos = transform.position + (movement * speed / GlobalConstants.unitScaling) * Time.deltaTime * 60 + damageSystem.knockback / GlobalConstants.unitScaling / 2 * Time.deltaTime * 60; ;
                 
                 if (Vector3.Distance(bound, newPos) < length)
